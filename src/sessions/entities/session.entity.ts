@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Course } from '../../courses/entities/course.entity';
-import { User } from '../../users/entities/user.entity';
+import { UserEntity } from '../../users/entities/user.entity';
 import { Question } from '../../questions/entities/question.entity';
 import { Quiz } from '../../quizzes/entities/quiz.entity';
 
@@ -21,8 +21,8 @@ export class Session {
     @ManyToOne(() => Course, (course) => course.sessions)
     course: Course;
 
-    @ManyToOne(() => User, (user) => user.sessions)
-    instructor: User;
+    @ManyToOne(() => UserEntity, (user) => user.sessions)
+    instructor: UserEntity;
 
     @OneToMany(() => Question, (question) => question.session)
     questions: Question[];
