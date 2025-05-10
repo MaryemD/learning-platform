@@ -1,67 +1,30 @@
 # Learning Platform
 
-## Features
+## Analytics Features
 
-### Analytics
+### Real-Time Event Streaming
 
-The platform includes a real-time analytics system using Server-Sent Events (SSE) that provides:
+- **SSE Endpoint**: `GET /analytics/events?sessionId={sessionId}`
+- **Tracked Events**:
+  - `student_joined`: Student enters session
+  - `quiz_participation`: Student attempts quiz
+  - `new_question`: New question asked
+  - `question_result`: Question answered (success/failure)
 
-- **Real-time Session Events**: Track student activity with timestamps and session identifiers
-- **Optional Session-specific Alerts**: Instructors can subscribe to specific alert types
-- **Periodic Alert Processing**: Automatic monitoring of session metrics and conditions
+### Alert System (Periodic Checks)
 
-#### Real-Time Session Events
+- **SSE Endpoint**: `GET /analytics/alerts/stream?sessionId={sessionId}`
+- **Alert Types** (require configuration):
+  | Type | Description | Example Threshold |
+  |------|-------------|-------------------|
+  | `question_failure_rate` | Triggers when question failures exceed configured % | 60% |
+  | `student_inactivity` | Triggers when students are inactive beyond configured minutes | 30 min |
+  | `low_participation` | Triggers when participation falls below configured % | 40% |
 
-The system tracks these key session events:
-
-- **Student Joined**: When a student joins a learning session
-- **Quiz Participation**: When a student participates in a quiz
-- **New Question**: When a question is asked in a session
-- **Question Result**: When a question is answered (success or failure)
-
-#### Optional Periodic Alerts
-
-Instructors can subscribe to these session-specific alerts and configure thresholds:
-
-- **Question Failure Rate**: Alerts when questions have high failure rates
-- **Student Inactivity**: Notifies when students are inactive for extended periods
-- **Low Participation**: Alerts when overall session participation drops
-
-#### Using Analytics
-
-- **Subscribe to session events**: `GET /analytics/events?sessionId=YOUR_SESSION_ID`
-- **Subscribe to session alerts**: `GET /analytics/alerts/stream?sessionId=YOUR_SESSION_ID`
-- **Subscribe to an alert type**: `POST /analytics/alerts/subscribe` with payload:
-  ```json
-  {
-    "sessionId": "session-id",
-    "instructorId": "instructor-id",
-    "alertType": "question_failure_rate",
-    "threshold": 70
-  }
-  ```
-- **Set alert threshold**: `POST /analytics/alerts/threshold` with payload:
-  ```json
-  {
-    "sessionId": "session-id",
-    "alertType": "question_failure_rate",
-    "threshold": 70
-  }
-  ```
-- **Unsubscribe from an alert**: `DELETE /analytics/alerts/unsubscribe/{sessionId}/{instructorId}/{alertType}`
-
-#### Integration Points
-
-The analytics system integrates with other modules through these key methods:
-
-- **Session Lifecycle**: `initSession()` and `cleanupSession()`
-- **Event Publishing**:
-  - `notifyStudentJoined()`
-  - `notifyQuizParticipation()`
-  - `notifyNewQuestion()`
-  - `trackQuestionResult()`
-- **Alert Publishing**:
-  - `emitOptionalAlert()`
+- **Key Characteristics**:
+  - ✋ **No default thresholds** - Must be configured to receive alerts
+  - ⏱️ **Periodic checks** - Conditions verified every 15 minutes
+  - ⚙️ **Fully configurable** - Each alert type requires explicit setup
 
 ## Installation
 
