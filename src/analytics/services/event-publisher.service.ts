@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { SessionEvent } from '../dto/session-event.dto';
-import { EventType } from '../enums';
+import { EventType, OptionalAlertType } from '../enums';
 
 /**
  * Service for publishing standardized analytics events
@@ -69,5 +69,43 @@ export class EventPublisherService {
     };
 
     this.analyticsService.emitSessionEvent(event);
+  }
+
+  /**
+   * Track a question result (success or failure)
+   */
+  trackQuestionResult(
+    sessionId: string,
+    questionId: string,
+    studentId: string,
+    success: boolean,
+  ): void {
+    const event: SessionEvent = {
+      type: EventType.QuestionResult,
+      timestamp: Date.now(),
+      sessionId,
+      questionId,
+      studentId,
+      success,
+    };
+
+    this.analyticsService.emitSessionEvent(event);
+  }
+
+  /**
+   * Emit an optional alert
+   */
+  emitOptionalAlert(
+    sessionId: string,
+    alertType: OptionalAlertType,
+    message: string,
+    data?: any,
+  ): void {
+    this.analyticsService.emitOptionalAlert(
+      sessionId,
+      alertType,
+      message,
+      data,
+    );
   }
 }

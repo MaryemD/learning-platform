@@ -38,3 +38,13 @@ export interface NewQuestionEvent extends SessionEvent {
   question: string;
   studentId: string;
 }
+
+/**
+ * Event for when a question is answered (success or failure)
+ */
+export interface QuestionResultEvent extends SessionEvent {
+  type: EventType.QuestionResult;
+  questionId: string;
+  studentId: string;
+  success: boolean;
+}
