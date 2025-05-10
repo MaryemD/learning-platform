@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { UserModule } from './users/users.module';
 import { CoursesModule } from './courses/courses.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { QuestionsModule } from './questions/questions.module';
@@ -12,7 +12,7 @@ import { RealtimeModule } from './realtime/realtime.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { SharedModule } from './shared/shared.module';
-import { User } from './users/entities/user.entity';
+import { UserEntity } from './users/entities/user.entity';
 import { Course } from './courses/entities/course.entity';
 import { Session } from './sessions/entities/session.entity';
 import { Question } from './questions/entities/question.entity';
@@ -41,12 +41,12 @@ dotenv.config();
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       autoLoadEntities: true,
-      entities: [User, Course, Session, Question, Quiz, QuizQuestion, QuizAnswer],
+      entities: [UserEntity, Course, Session, Question, Quiz, QuizQuestion, QuizAnswer],
       synchronize: true,
     }),
     SharedModule,
     AuthModule,
-    UsersModule,
+    UserModule,
     CoursesModule,
     SessionsModule,
     QuestionsModule,

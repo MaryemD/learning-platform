@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { UserEntity } from '../../users/entities/user.entity';
 import { Session } from '../../sessions/entities/session.entity';
 
 @Entity()
@@ -13,8 +13,8 @@ export class Course {
     @Column()
     description: string;
 
-    @ManyToOne(() => User, (user) => user.courses)
-    instructor: User;
+    @ManyToOne(() => UserEntity, (user) => user.courses)
+    instructor: UserEntity;
 
     @OneToMany(() => Session, (session) => session.course)
     sessions: Session[];
