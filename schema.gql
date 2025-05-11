@@ -1,0 +1,55 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserModel {
+  id: ID!
+  name: String!
+  email: String!
+  role: String!
+}
+
+type SessionModel {
+  id: ID!
+  title: String!
+  startTime: DateTime!
+  isLive: Boolean!
+  instructor: UserModel!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type CourseModel {
+  id: ID!
+  title: String!
+  description: String!
+  instructor: UserModel!
+  sessions: [SessionModel]
+}
+
+type Query {
+  courses: [CourseModel!]!
+  course(id: Int!): CourseModel!
+}
+
+type Mutation {
+  createCourse(createCourseInput: CreateCourseInput!): CourseModel!
+  updateCourse(updateCourseInput: UpdateCourseInput!): CourseModel!
+  removeCourse(id: Int!): Boolean!
+}
+
+input CreateCourseInput {
+  title: String!
+  description: String!
+  instructorId: Int!
+}
+
+input UpdateCourseInput {
+  title: String
+  description: String
+  instructorId: Int
+  id: Int!
+}
