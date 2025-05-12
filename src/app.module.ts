@@ -57,7 +57,6 @@ dotenv.config();
     UserModule,
     CoursesModule,
     SessionsModule,
-    QuestionsModule,
     QuizzesModule,
     RealtimeModule,
     AnalyticsModule,

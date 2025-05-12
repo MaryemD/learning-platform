@@ -9,12 +9,42 @@ type UserModel {
   role: String!
 }
 
+type QuizQuestionModel {
+  id: Int!
+  questionText: String!
+  options: [String!]!
+  correctAnswerIndex: Int!
+}
+
+type QuizModel {
+  id: Int!
+  title: String!
+  session: SessionModel!
+  questions: [QuizQuestionModel!]!
+  instructor: UserModel!
+}
+
+type QuestionModel {
+  id: Int!
+  content: String!
+  answered: Boolean!
+  options: [String!]!
+  correctAnswerIndex: Int!
+  userAnswers: [Int!]
+  session: SessionModel!
+  user: UserModel!
+  quiz: QuizModel
+}
+
 type SessionModel {
   id: ID!
   title: String!
   startTime: DateTime!
   isLive: Boolean!
   instructor: UserModel!
+  course: CourseModel!
+  questions: [QuestionModel]
+  quizzes: [QuizModel]
 }
 
 """
@@ -33,12 +63,24 @@ type CourseModel {
 type Query {
   courses: [CourseModel!]!
   course(id: Int!): CourseModel!
+  sessions: [SessionModel!]!
+  session(id: Int!): SessionModel!
+  quizzes: [QuizModel!]!
+  quiz(id: Int!): QuizModel!
 }
 
 type Mutation {
   createCourse(createCourseInput: CreateCourseInput!): CourseModel!
   updateCourse(updateCourseInput: UpdateCourseInput!): CourseModel!
   removeCourse(id: Int!): Boolean!
+  createSession(createSessionInput: CreateSessionInput!): SessionModel!
+  updateSession(updateSessionInput: UpdateSessionInput!): SessionModel!
+  removeSession(id: Int!): Boolean!
+  startLiveSession(id: Int!): SessionModel!
+  endLiveSession(id: Int!): SessionModel!
+  createQuiz(createQuizInput: CreateQuizInput!): QuizModel!
+  createQuizQuestion(quizId: Int!, createQuizQuestionInput: CreateQuizQuestionInput!): QuizQuestionModel!
+  addQuestionsToQuiz(quizId: Int!, questionIds: [Int!]!): QuizModel!
 }
 
 input CreateCourseInput {
@@ -52,4 +94,33 @@ input UpdateCourseInput {
   description: String
   instructorId: Int
   id: Int!
+}
+
+input CreateSessionInput {
+  title: String!
+  startTime: DateTime!
+  isLive: Boolean!
+  courseId: Int!
+  instructorId: Int!
+}
+
+input UpdateSessionInput {
+  title: String
+  startTime: DateTime
+  isLive: Boolean
+  courseId: Int
+  instructorId: Int
+  id: Int!
+}
+
+input CreateQuizInput {
+  title: String!
+  sessionId: Int!
+  questions: [CreateQuizQuestionInput!]
+}
+
+input CreateQuizQuestionInput {
+  questionText: String!
+  options: [String!]!
+  correctAnswerIndex: Int!
 }

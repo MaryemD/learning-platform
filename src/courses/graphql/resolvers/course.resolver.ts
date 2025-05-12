@@ -7,8 +7,7 @@ import {CourseModel} from "../models/course.model";
 import {CreateCourseInput} from "../inputs/create-course.input";
 import {UpdateCourseInput} from "../inputs/update-course.input";
 import {UserModel} from "../models/user.model";
-import {SessionModel} from "../models/session.model";
-
+import { SessionModel } from 'src/sessions/graphql/models/session.model';
 @Resolver(() => CourseModel)
 export class CourseResolver {
     constructor(

@@ -49,7 +49,9 @@ export class CoursesService {
             course.instructor = instructor;
         }
 
-        Object.assign(course, updateDto);
+        const { instructorId, ...restDto } = updateDto;
+        Object.assign(course, restDto);
+
         return this.coursesRepo.save(course);
     }
 

@@ -1,6 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { UserModel } from './user.model';
-import { SessionModel } from './session.model';
+import { SessionModel } from 'src/sessions/graphql/models/session.model';
 
 @ObjectType()
 export class CourseModel {
