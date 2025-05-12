@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -25,6 +26,8 @@ import {ConfigModule} from "@nestjs/config";
 declare const process: any;
 
 import * as dotenv from 'dotenv';
+import {GraphQLModule} from "@nestjs/graphql";
+import {ApolloDriver, ApolloDriverConfig} from "@nestjs/apollo";
 dotenv.config();
 
 
@@ -44,12 +47,16 @@ dotenv.config();
       entities: [UserEntity, Course, Session, Question, Quiz, QuizQuestion, QuizAnswer],
       synchronize: true,
     }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: 'schema.gql',
+      playground: true,
+    }),
     SharedModule,
     AuthModule,
     UserModule,
     CoursesModule,
     SessionsModule,
-    QuestionsModule,
     QuizzesModule,
     RealtimeModule,
     AnalyticsModule,

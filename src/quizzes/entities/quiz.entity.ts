@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Session } from '../../sessions/entities/session.entity';
 import { QuizQuestion } from './quiz-question.entity';
 import { QuizAnswer } from './quiz-answer.entity';
@@ -11,12 +11,18 @@ export class Quiz {
     @Column()
     title: string;
 
-    @ManyToOne(() => Session, (session) => session.quizzes)
+    @ManyToOne(() => Session, (session) => session.quizzes, { onDelete: 'CASCADE' })
     session: Session;
 
-    @OneToMany(() => QuizQuestion, (question) => question.quiz)
+    @OneToMany(() => QuizQuestion, (question) => question.quiz, { cascade: true })
     questions: QuizQuestion[];
 
-    @OneToMany(() => QuizAnswer, (answer) => answer.quiz)
+    @OneToMany(() => QuizAnswer, (answer) => answer.quiz, { cascade: true })
     answers: QuizAnswer[];
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
