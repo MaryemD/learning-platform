@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Test Interface</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .connection-panel {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .connection-panel input, .connection-panel button {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .connection-panel button {
+            background: #2196f3;
+            color: white;
+            cursor: pointer;
+        }
+        .connection-panel button:hover {
+            background: #1976d2;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.connected {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .status.disconnected {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #fafafa;
+            margin-bottom: 15px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 70%;
+        }
+        .message.own {
+            background: #2196f3;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .message.other {
+            background: white;
+            border: 1px solid #ddd;
+        }
+        .message-header {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        .message-content {
+            font-size: 14px;
+        }
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+        .input-panel {
+            display: flex;
+            gap: 10px;
+        }
+        .input-panel input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .input-panel button {
+            padding: 10px 20px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .input-panel button:hover {
+            background: #45a049;
+        }
+        .typing-indicator {
+            font-style: italic;
+            color: #666;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .control-group {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .control-group h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .control-group button {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #ff9800;
+            color: white;
+        }
+        .control-group button:hover {
+            background: #f57c00;
+        }
+        .logs {
+            background: #263238;
+            color: #b0bec5;
+            padding: 15px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 2px 0;
+        }
+        .log-entry.info { color: #81c784; }
+        .log-entry.error { color: #e57373; }
+        .log-entry.warning { color: #ffb74d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Chat Test Interface</h1>
+
+        <!-- Connection Panel -->
+        <div class="connection-panel">
+            <h3>Connection Settings</h3>
+            <input type="text" id="serverUrl" placeholder="Server URL" value="http://localhost:3300">
+            <input type="number" id="sessionId" placeholder="Session ID" value="1">
+            <input type="number" id="userId" placeholder="User ID" value="123">
+            <input type="text" id="userName" placeholder="User Name" value="Test User">
+            <button onclick="connectToChat()">Connect</button>
+            <button onclick="disconnectFromChat()">Disconnect</button>
+        </div>
+
+        <!-- Status -->
+        <div id="status" class="status disconnected">Disconnected</div>
+
+        <!-- Chat Container -->
+        <div id="chatContainer" class="chat-container"></div>
+
+        <!-- Typing Indicator -->
+        <div id="typingIndicator" class="typing-indicator"></div>
+
+        <!-- Message Input -->
+        <div class="input-panel">
+            <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-group">
+                <h4>Session Controls</h4>
+                <button onclick="joinSession()">Join Session</button>
+                <button onclick="leaveSession()">Leave Session</button>
+                <button onclick="loadRecentMessages()">Load Recent Messages</button>
+            </div>
+
+            <div class="control-group">
+                <h4>Message Controls</h4>
+                <button onclick="markLastMessageAsRead()">Mark Last as Read</button>
+                <button onclick="simulateTyping()">Simulate Typing</button>
+                <button onclick="clearChat()">Clear Chat</button>
+            </div>
+
+            <div class="control-group">
+                <h4>Test Messages</h4>
+                <button onclick="sendTestMessage('Hello everyone! 👋')">Send Hello</button>
+                <button onclick="sendTestMessage('How is everyone doing?')">Send Question</button>
+                <button onclick="sendTestMessage('This is a test message with emojis 🎉🚀')">Send Emoji</button>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="logs" id="logs"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentSessionId = null;
+        let currentUserId = null;
+        let currentUserName = null;
+        let lastMessageId = null;
+        let typingTimeout = null;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            const status = document.getElementById('status');
+            if (connected) {
+                status.textContent = `Connected to session ${currentSessionId} as ${currentUserName} (ID: ${currentUserId})`;
+                status.className = 'status connected';
+            } else {
+                status.textContent = 'Disconnected';
+                status.className = 'status disconnected';
+            }
+        }
+
+        function connectToChat() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            currentSessionId = parseInt(document.getElementById('sessionId').value);
+            currentUserId = parseInt(document.getElementById('userId').value);
+            currentUserName = document.getElementById('userName').value;
+
+            if (!serverUrl || !currentSessionId || !currentUserId || !currentUserName) {
+                alert('Please fill in all connection fields');
+                return;
+            }
+
+            try {
+                socket = io(`${serverUrl}/chat`,{
+                    auth:{
+                        token: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im5vdXIiLCJlbWFpbCI6InRlc3RAZ21haWwuY29tIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE3NDg2MTg0MDMsImV4cCI6MTc0ODYyMjAwM30.cl3ofoZSSYJAXHZ6yKnqP89qDFiouLp77Q0a9RUWiB0',
+                    }
+                    },);
+
+                socket.on('connect', () => {
+                    log('Connected to server', 'info');
+                    updateStatus(true);
+                    joinSession();
+                });
+
+                socket.on('disconnect', () => {
+                    log('Disconnected from server', 'warning');
+                    updateStatus(false);
+                });
+
+                socket.on('recentMessages', (messages) => {
+                    log(`Received ${messages.length} recent messages`, 'info');
+                    displayMessages(messages.reverse());
+                });
+
+                socket.on('newMessage', (message) => {
+                    log('New message received', 'info');
+                    displayMessage(message);
+                    lastMessageId = message.id;
+                });
+
+                socket.on('messageRead', (data) => {
+                    log(`Message ${data.messageId} marked as read by user ${data.userId}`, 'info');
+                });
+
+                socket.on('userTyping', (data) => {
+                    if (data.userId !== currentUserId) {
+                        showTypingIndicator(data.userId, data.isTyping);
+                    }
+                });
+
+                socket.on('error', (error) => {
+                    log(`Error: ${error.message}`, 'error');
+                    alert(`Error: ${error.message}`);
+                });
+
+            } catch (error) {
+                log(`Connection error: ${error.message}`, 'error');
+                alert(`Connection error: ${error.message}`);
+            }
+        }
+
+        function disconnectFromChat() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                updateStatus(false);
+                log('Manually disconnected', 'warning');
+            }
+        }
+
+        function joinSession() {
+            if (!socket || !currentSessionId || !currentUserId) return;
+
+            socket.emit('joinSession', {
+                sessionId: currentSessionId,
+                userId: currentUserId
+            });
+            log(`Joining session ${currentSessionId}`, 'info');
+        }
+
+        function leaveSession() {
+            if (!socket || !currentSessionId || !currentUserId) return;
+
+            socket.emit('leaveSession', {
+                sessionId: currentSessionId,
+                userId: currentUserId
+            });
+            log(`Left session ${currentSessionId}`, 'warning');
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+
+            if (!content || !socket || !currentSessionId || !currentUserId) return;
+
+            socket.broadcast('sendMessage', {
+                content: content,
+                sessionId: currentSessionId,
+                senderId: currentUserId
+            });
+
+            messageInput.value = '';
+            log(`Sent message: "${content}"`, 'info');
+        }
+
+        function sendTestMessage(content) {
+            if (!socket || !currentSessionId || !currentUserId) return;
+
+            socket.emit('sendMessage', {
+                content: content,
+                sessionId: currentSessionId,
+                senderId: currentUserId
+            });
+
+            log(`Sent test message: "${content}"`, 'info');
+        }
+
+        function markLastMessageAsRead() {
+            if (!socket || !lastMessageId) {
+                log('No message to mark as read', 'warning');
+                return;
+            }
+
+            socket.emit('markAsRead', {
+                messageId: lastMessageId,
+                userId: currentUserId
+            });
+            log(`Marked message ${lastMessageId} as read`, 'info');
+        }
+
+        function simulateTyping() {
+            if (!socket || !currentSessionId || !currentUserId) return;
+
+            socket.emit('typing', {
+                sessionId: currentSessionId,
+                userId: currentUserId,
+                isTyping: true
+            });
+
+            setTimeout(() => {
+                socket.emit('typing', {
+                    sessionId: currentSessionId,
+                    userId: currentUserId,
+                    isTyping: false
+                });
+            }, 3000);
+
+            log('Simulated typing for 3 seconds', 'info');
+        }
+
+        function displayMessage(message) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+
+            const isOwnMessage = message.sender && message.sender.id === currentUserId;
+            messageDiv.className = `message ${isOwnMessage ? 'own' : 'other'}`;
+
+            const senderName = message.sender ? message.sender.name : 'Unknown';
+            const timestamp = new Date(message.timestamp).toLocaleTimeString();
+
+            messageDiv.innerHTML = `
+                <div class="message-header">${senderName} ${message.isRead ? '✓✓' : '✓'}</div>
+                <div class="message-content">${message.content}</div>
+                <div class="message-time">${timestamp}</div>
+            `;
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function displayMessages(messages) {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '';
+            messages.forEach(message => displayMessage(message));
+        }
+
+        function showTypingIndicator(userId, isTyping) {
+            const indicator = document.getElementById('typingIndicator');
+            if (isTyping) {
+                indicator.textContent = `User ${userId} is typing...`;
+            } else {
+                indicator.textContent = '';
+            }
+        }
+
+        function clearChat() {
+            document.getElementById('chatContainer').innerHTML = '';
+            log('Chat cleared', 'info');
+        }
+
+        function loadRecentMessages() {
+            if (!socket || !currentSessionId) return;
+
+            // This would typically be done via REST API, but for testing we'll rejoin
+            leaveSession();
+            setTimeout(() => joinSession(), 500);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            } else {
+                // Send typing indicator
+                if (socket && currentSessionId && currentUserId) {
+                    socket.emit('typing', {
+                        sessionId: currentSessionId,
+                        userId: currentUserId,
+                        isTyping: true
+                    });
+
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => {
+                        socket.emit('typing', {
+                            sessionId: currentSessionId,
+                            userId: currentUserId,
+                            isTyping: false
+                        });
+                    }, 1000);
+                }
+            }
+        }
+
+        // Initialize
+        log('Chat test interface loaded', 'info');
+        log('Fill in connection details and click Connect to start', 'info');
+    </script>
+</body>
+</html>

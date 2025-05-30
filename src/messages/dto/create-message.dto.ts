@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsInt } from 'class-validator';
 
-export class CreateQuestionDto {
+export class CreateMessageDto {
     @IsString()
     @IsNotEmpty()
     content: string;
@@ -9,5 +9,5 @@ export class CreateQuestionDto {
     sessionId: number;
 
     @IsInt()
-    userId: number;
+    senderId: number;
 }

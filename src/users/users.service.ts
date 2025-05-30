@@ -58,4 +58,18 @@ export class UserService {
     InstructorOrAdmin(user) {
         return (user.role === UserRoleEnum.ADMIN || user.role === UserRoleEnum.INSTRUCTOR);
     }
+    findOneById(id: number){
+        return this.userRepository.findOneBy({
+            id:id
+        })
+    }
+
+    findAll(){
+        return this.userRepository.find();
+    }
+    findOneByEmail(email: string){
+        return this.userRepository.findOneBy({
+            email: email,
+        })
+    }
 }

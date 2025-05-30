@@ -27,13 +27,18 @@ npm install @nestjs/config dotenv
 
 Create a .env file in the root of the project with the following content:
 
+```env
 DB_HOST=localhost
 DB_PORT=3306
 DB_USERNAME=root
 DB_PASSWORD=your_password
 DB_NAME=learning-platform-db
 
-Replace your_password with your actual MySQL password.
+# JWT Secret Key for token signing (change this in production!)
+SECRET=your-super-secret-jwt-key-change-this-in-production
+```
+
+Replace `your_password` with your actual MySQL password and `your-super-secret-jwt-key-change-this-in-production` with a strong secret key for JWT token signing.
 
 ### Database Setup
 

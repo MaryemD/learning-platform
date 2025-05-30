@@ -9,6 +9,20 @@ type UserModel {
   role: String!
 }
 
+type MessageModel {
+  id: Int!
+  content: String!
+  timestamp: DateTime!
+  isRead: Boolean!
+  sender: UserModel!
+  session: SessionModel!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type QuizQuestionModel {
   id: Int!
   questionText: String!
@@ -24,18 +38,6 @@ type QuizModel {
   instructor: UserModel!
 }
 
-type QuestionModel {
-  id: Int!
-  content: String!
-  answered: Boolean!
-  options: [String!]!
-  correctAnswerIndex: Int!
-  userAnswers: [Int!]
-  session: SessionModel!
-  user: UserModel!
-  quiz: QuizModel
-}
-
 type SessionModel {
   id: ID!
   title: String!
@@ -43,14 +45,9 @@ type SessionModel {
   isLive: Boolean!
   instructor: UserModel!
   course: CourseModel!
-  questions: [QuestionModel]
+  messages: [MessageModel]
   quizzes: [QuizModel]
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type CourseModel {
   id: ID!
@@ -65,6 +62,12 @@ type Query {
   course(id: Int!): CourseModel!
   sessions: [SessionModel!]!
   session(id: Int!): SessionModel!
+  messages: [MessageModel!]!
+  message(id: Int!): MessageModel!
+  messagesBySession(sessionId: Int!): [MessageModel!]!
+  messagesByUser(userId: Int!): [MessageModel!]!
+  recentMessages(sessionId: Int!, limit: Int! = 50): [MessageModel!]!
+  unreadMessagesCount(sessionId: Int!, userId: Int!): Int!
   quizzes: [QuizModel!]!
   quiz(id: Int!): QuizModel!
 }
@@ -78,6 +81,11 @@ type Mutation {
   removeSession(id: Int!): Boolean!
   startLiveSession(id: Int!): SessionModel!
   endLiveSession(id: Int!): SessionModel!
+  createMessage(createMessageInput: CreateMessageInput!): MessageModel!
+  updateMessage(updateMessageInput: UpdateMessageInput!): MessageModel!
+  removeMessage(id: Int!): Boolean!
+  markMessageAsRead(id: Int!): MessageModel!
+  markAllMessagesAsRead(sessionId: Int!, userId: Int!): Boolean!
   createQuiz(createQuizInput: CreateQuizInput!): QuizModel!
   createQuizQuestion(quizId: Int!, createQuizQuestionInput: CreateQuizQuestionInput!): QuizQuestionModel!
   addQuestionsToQuiz(quizId: Int!, questionIds: [Int!]!): QuizModel!
@@ -111,6 +119,20 @@ input UpdateSessionInput {
   courseId: Int
   instructorId: Int
   id: Int!
+}
+
+input CreateMessageInput {
+  content: String!
+  sessionId: Int!
+  senderId: Int!
+}
+
+input UpdateMessageInput {
+  id: Int!
+  content: String
+  isRead: Boolean
+  sessionId: Int
+  senderId: Int
 }
 
 input CreateQuizInput {
