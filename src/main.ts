@@ -11,9 +11,13 @@ async function bootstrap() {
 
   // Enable CORS for all origins (adjust for production)
   app.enableCors({
-    origin: true, // Allow all origins for development
+    origin: 'http://localhost:3000', // Allow all origins for development
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Apollo-Require-Preflight',
+    ],
     credentials: true,
   });
 

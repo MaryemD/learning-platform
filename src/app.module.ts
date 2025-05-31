@@ -51,6 +51,11 @@ dotenv.config();
       driver: ApolloDriver,
       autoSchemaFile: 'schema.gql',
       playground: true,
+      subscriptions:{
+        'graphql-ws': true,
+        'subscriptions-transport-ws': true,
+      },
+      path: '/graphql',
     }),
     SharedModule,
     AuthModule,
