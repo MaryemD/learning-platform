@@ -42,7 +42,7 @@ export class SessionsService {
     async findOne(id: number): Promise<Session> {
         const session = await this.sessionsRepo.findOne({
             where: { id },
-            relations: ['course', 'instructor', 'questions', 'quizzes'],
+            relations: ['course', 'instructor', 'messages', 'quizzes'],
         });
         if (!session) throw new NotFoundException(`Session #${id} not found`);
         return session;
