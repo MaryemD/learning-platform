@@ -8,8 +8,7 @@ export class AnalyticsProcessorService
 {
   private processingInterval: NodeJS.Timeout | null = null;
 
-  // Configuration
-  private readonly PROCESSING_INTERVAL = 15 * 60 * 1000; // 5 minutes
+  private readonly PROCESSING_INTERVAL = 15 * 60 * 1000; // 15 minutes
 
   constructor(private readonly analyticsService: AnalyticsService) {}
 
@@ -21,18 +20,12 @@ export class AnalyticsProcessorService
     this.stopPeriodicProcessing();
   }
 
-  /**
-   * Start periodic processing of session data
-   */
   private startPeriodicProcessing(): void {
     this.processingInterval = setInterval(() => {
       this.processAllSessions();
     }, this.PROCESSING_INTERVAL);
   }
 
-  /**
-   * Stop periodic processing
-   */
   private stopPeriodicProcessing(): void {
     if (this.processingInterval) {
       clearInterval(this.processingInterval);
@@ -40,9 +33,6 @@ export class AnalyticsProcessorService
     }
   }
 
-  /**
-   * Process all active sessions
-   */
   private processAllSessions(): void {
     const sessionIds = this.analyticsService.getActiveSessionIds();
 
@@ -51,28 +41,19 @@ export class AnalyticsProcessorService
     }
   }
 
-  /**
-   * Process a single session
-   */
-  private processSession(sessionId: number): void {
+
+  private processSession(sessionId: string): void {
     const sessionData =
       this.analyticsService.getSessionDataForProcessing(sessionId);
     if (!sessionData) return;
 
-    // Check for student inactivity
     this.checkStudentInactivity(sessionId, sessionData);
-
-    // Check for low participation
     this.checkLowParticipation(sessionId, sessionData);
-
-    // Check for question failure rates
     this.checkQuestionFailureRates(sessionId, sessionData);
   }
 
-  /**
-   * Check for student inactivity
-   */
-  private checkStudentInactivity(sessionId: number, sessionData: any): void {
+
+  private checkStudentInactivity(sessionId: string, sessionData: any): void {
     const now = Date.now();
     let inactiveCount = 0;
     const inactivityThreshold = this.analyticsService.getAlertThreshold(
@@ -80,14 +61,12 @@ export class AnalyticsProcessorService
       OptionalAlertType.STUDENT_INACTIVITY,
     );
 
-    // Count inactive students
     for (const [studentId, lastActive] of sessionData.lastActivity.entries()) {
       if (now - lastActive > inactivityThreshold) {
         inactiveCount++;
       }
     }
 
-    // Only emit alert if there are inactive students
     if (inactiveCount > 0) {
       this.analyticsService.emitOptionalAlert(
         sessionId,
@@ -98,14 +77,12 @@ export class AnalyticsProcessorService
     }
   }
 
-  /**
-   * Check for low participation
-   */
-  private checkLowParticipation(sessionId: number, sessionData: any): void {
+
+  private checkLowParticipation(sessionId: string, sessionData: any): void {
     const totalStudents = sessionData.lastActivity.size;
     if (totalStudents === 0) return;
 
-    // Count recently active students (within inactivity threshold)
+    // Count recently active students
     const now = Date.now();
     let activeCount = 0;
     const inactivityThreshold = this.analyticsService.getAlertThreshold(
@@ -137,10 +114,8 @@ export class AnalyticsProcessorService
     }
   }
 
-  /**
-   * Check for high question failure rates
-   */
-  private checkQuestionFailureRates(sessionId: number, sessionData: any): void {
+
+  private checkQuestionFailureRates(sessionId: string, sessionData: any): void {
     const questionFailureThreshold = this.analyticsService.getAlertThreshold(
       sessionId,
       OptionalAlertType.QUESTION_FAILURE_RATE,
@@ -168,12 +143,5 @@ export class AnalyticsProcessorService
         );
       }
     }
-  }
-
-  /**
-   * Manually trigger processing (for testing)
-   */
-  triggerProcessing(): void {
-    this.processAllSessions();
   }
 }

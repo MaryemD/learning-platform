@@ -6,16 +6,16 @@ import {
   Param,
   Sse,
   Query,
+
+  UseGuards,
 } from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
 import { OptionalAlertType } from '../enums';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
-// To be added later after auth is implemented
-// import { AuthGuard } from '../../auth/guards/auth.guard';
-// import { RolesGuard } from '../../roles/roles.guard';
-// import { Roles } from '../../roles/roles.decorator';
+import { UserRoleEnum } from 'src/enums/user-role.enum';
+import { Roles } from 'src/roles/roles.decorator';
+import { JwtAuthGuard } from 'src/users/guards/jwt-auth.guard';
 
 interface AlertSubscriptionRequest {
   sessionId: number;
@@ -31,8 +31,8 @@ interface AlertThresholdRequest {
 }
 
 @Controller('analytics/alerts')
-// @UseGuards(AuthGuard, RolesGuard)
-// @Roles('Instructor')
+@Roles(UserRoleEnum.INSTRUCTOR)
+@UseGuards(JwtAuthGuard)
 export class OptionalAlertsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
@@ -61,6 +61,7 @@ export class OptionalAlertsController {
   unsubscribeFromAlert(
     @Param('sessionId') sessionId: number,
     @Param('instructorId') instructorId: number,
+
     @Param('alertType') alertType: OptionalAlertType,
   ) {
     this.analyticsService.unsubscribeFromAlert(
@@ -98,6 +99,7 @@ export class OptionalAlertsController {
   @Sse('stream')
   streamAlerts(
     @Query('sessionId') sessionId: number,
+
   ): Observable<MessageEvent> {
     return this.analyticsService.subscribeToSessionAlerts(sessionId).pipe(
       map(

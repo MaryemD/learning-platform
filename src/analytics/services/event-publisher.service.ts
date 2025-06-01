@@ -3,16 +3,10 @@ import { AnalyticsService } from './analytics.service';
 import { SessionEvent } from '../dto/session-event.dto';
 import { EventType, OptionalAlertType } from '../enums';
 
-/**
- * Service for publishing standardized analytics events
- */
 @Injectable()
 export class EventPublisherService {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  /**
-   * Notifies when a student joins a session
-   */
   notifyStudentJoined(
     sessionId: number,
     studentId: number,
@@ -29,9 +23,6 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Notifies when a student participates in a quiz
-   */
   notifyQuizParticipation(
     sessionId: number,
     studentId: number,
@@ -48,14 +39,29 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Track a quiz's question result (success or failure)
-   */
-  NotifyWithQuizQuestionResult(
-    sessionId: number,
-    quizId: number,
-    questionId: number,
-    studentId: number,
+
+  notifyNewQuestion(
+    sessionId: string,
+    questionId: string,
+    question: string,
+    studentId: string,
+  ): void {
+    const event: SessionEvent = {
+      type: EventType.NewQuestion,
+      timestamp: Date.now(),
+      sessionId,
+      questionId,
+      question,
+      studentId,
+    };
+
+    this.analyticsService.emitSessionEvent(event);
+  }
+
+  trackQuestionResult(
+    sessionId: string,
+    questionId: string,
+    studentId: string,
     success: boolean,
   ): void {
     const event: SessionEvent = {
@@ -71,9 +77,6 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Emit an optional alert
-   */
   emitOptionalAlert(
     sessionId: number,
     alertType: OptionalAlertType,
