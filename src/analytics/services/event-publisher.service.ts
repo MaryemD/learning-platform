@@ -14,8 +14,8 @@ export class EventPublisherService {
    * Notifies when a student joins a session
    */
   notifyStudentJoined(
-    sessionId: string,
-    studentId: string,
+    sessionId: number,
+    studentId: number,
     studentName: string,
   ): void {
     const event: SessionEvent = {
@@ -33,10 +33,9 @@ export class EventPublisherService {
    * Notifies when a student participates in a quiz
    */
   notifyQuizParticipation(
-    sessionId: string,
-    studentId: string,
-    completed: boolean = false,
-    quizId?: string,
+    sessionId: number,
+    studentId: number,
+    quizId?: number,
   ): void {
     const event: SessionEvent = {
       type: EventType.QuizParticipation,
@@ -44,49 +43,29 @@ export class EventPublisherService {
       sessionId,
       studentId,
       quizId,
-      completed,
     };
 
     this.analyticsService.emitSessionEvent(event);
   }
 
   /**
-   * Notifies when a new question is asked
+   * Track a quiz's question result (success or failure)
    */
-  notifyNewQuestion(
-    sessionId: string,
-    questionId: string,
-    question: string,
-    studentId: string,
-  ): void {
-    const event: SessionEvent = {
-      type: EventType.NewQuestion,
-      timestamp: Date.now(),
-      sessionId,
-      questionId,
-      question,
-      studentId,
-    };
-
-    this.analyticsService.emitSessionEvent(event);
-  }
-
-  /**
-   * Track a question result (success or failure)
-   */
-  trackQuestionResult(
-    sessionId: string,
-    questionId: string,
-    studentId: string,
+  NotifyWithQuizQuestionResult(
+    sessionId: number,
+    quizId: number,
+    questionId: number,
+    studentId: number,
     success: boolean,
   ): void {
     const event: SessionEvent = {
       type: EventType.QuestionResult,
       timestamp: Date.now(),
       sessionId,
-      questionId,
+      quizId,
       studentId,
       success,
+      questionId,
     };
 
     this.analyticsService.emitSessionEvent(event);
@@ -96,7 +75,7 @@ export class EventPublisherService {
    * Emit an optional alert
    */
   emitOptionalAlert(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
     message: string,
     data?: any,

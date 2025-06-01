@@ -13,7 +13,7 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/users/users.service';
-
+import { EventPublisherService } from 'src/analytics/services/event-publisher.service';
 
 @WebSocketGateway({
   cors: {
@@ -24,43 +24,42 @@ import { UserService } from 'src/users/users.service';
   },
   namespace: '/chat',
 })
-export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect {
-
-  
-
+export class MessagesGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   private logger = new Logger('MessagesGateway');
 
   constructor(
-  private readonly messagesService: MessagesService,
-  private readonly jwtService: JwtService,
-  private readonly userService: UserService,
-) {}
-
+    private readonly messagesService: MessagesService,
+    private readonly jwtService: JwtService,
+    private readonly userService: UserService,
+    private readonly eventPublisherService: EventPublisherService,
+  ) {}
 
   async handleConnection(client: Socket) {
-  try {
-    const token = client.handshake.auth?.token?.replace('Bearer ', '');
-    if (!token) {
-      throw new UnauthorizedException('No token provided');
+    try {
+      const token = client.handshake.auth?.token?.replace('Bearer ', '');
+      if (!token) {
+        throw new UnauthorizedException('No token provided');
+      }
+
+      const payload = this.jwtService.verify(token);
+      console.log(payload);
+      const user = await this.userService.findOneByEmail(payload.email);
+      client.data.user = user; // Store user data in socket instance
+      console.log(user);
+
+      this.logger.log(
+        `Client connected: ${client.id}, User ID: ${payload.sub}`,
+      );
+    } catch (error) {
+      this.logger.warn(`Unauthorized socket connection: ${error.message}`);
+      client.disconnect(); // Force disconnect if unauthorized
     }
-
-    const payload = this.jwtService.verify(token);
-    console.log(payload);
-    const user = await this.userService.findOneByEmail(payload.email)
-    client.data.user = user; 
-    console.log(user);
-    
-
-    this.logger.log(`Client connected: ${client.id}, User ID: ${payload.sub}`);
-  } catch (error) {
-    this.logger.warn(`Unauthorized socket connection: ${error.message}`);
-    client.disconnect(); 
   }
-}
-
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
@@ -69,20 +68,29 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('joinSession')
   async handleJoinSession(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { sessionId: number; userId: number }
+    @MessageBody() data: { sessionId: number; userId: number },
   ) {
     const room = `session_${data.sessionId}`;
     await client.join(room);
     this.logger.log(`User ${data.userId} joined session ${data.sessionId}`);
+    this.eventPublisherService.notifyStudentJoined(
+      data.sessionId,
+      data.userId,
+      client.data.user.name,
+    );
 
-    const recentMessages = await this.messagesService.getRecentMessages(data.sessionId, 50);
+    // Send recent messages to the newly joined user
+    const recentMessages = await this.messagesService.getRecentMessages(
+      data.sessionId,
+      50,
+    );
     client.emit('recentMessages', recentMessages);
   }
 
   @SubscribeMessage('leaveSession')
   async handleLeaveSession(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { sessionId: number; userId: number }
+    @MessageBody() data: { sessionId: number; userId: number },
   ) {
     const room = `session_${data.sessionId}`;
     await client.leave(room);
@@ -92,9 +100,8 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('sendMessage')
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() createMessageDto: CreateMessageDto
+    @MessageBody() createMessageDto: CreateMessageDto,
   ) {
-
     const user = client.data.user;
     if (!user) {
       return client.emit('error', { message: 'Unauthorized' });
@@ -109,30 +116,40 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.server.to(room).emit('newMessage', fullMessage);
       this.logger.log(`Message sent to session ${createMessageDto.sessionId}`);
     } catch (error) {
-      client.emit('error', { message: 'Failed to send message', error: error.message });
+      client.emit('error', {
+        message: 'Failed to send message',
+        error: error.message,
+      });
     }
   }
 
   @SubscribeMessage('markAsRead')
   async handleMarkAsRead(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { messageId: number; userId: number }
+    @MessageBody() data: { messageId: number; userId: number },
   ) {
     try {
       await this.messagesService.markAsRead(data.messageId);
 
       const message = await this.messagesService.findOne(data.messageId);
       const room = `session_${message.session.id}`;
-      this.server.to(room).emit('messageRead', { messageId: data.messageId, userId: data.userId });
+      this.server.to(room).emit('messageRead', {
+        messageId: data.messageId,
+        userId: data.userId,
+      });
     } catch (error) {
-      client.emit('error', { message: 'Failed to mark message as read', error: error.message });
+      client.emit('error', {
+        message: 'Failed to mark message as read',
+        error: error.message,
+      });
     }
   }
 
   @SubscribeMessage('typing')
   async handleTyping(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { sessionId: number; userId: number; isTyping: boolean }
+    @MessageBody()
+    data: { sessionId: number; userId: number; isTyping: boolean },
   ) {
     const room = `session_${data.sessionId}`;
     client.to(room).emit('userTyping', {

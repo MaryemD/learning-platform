@@ -19,7 +19,7 @@ export class SessionAnalyticsController {
    */
   @Sse('events')
   streamEvents(
-    @Query('sessionId') sessionId: string,
+    @Query('sessionId') sessionId: number,
   ): Observable<MessageEvent> {
     return this.analyticsService.subscribeToSession(sessionId).pipe(
       map(

@@ -21,9 +21,9 @@ interface SessionData {
  */
 @Injectable()
 export class AnalyticsService {
-  private sessionEvents = new Map<string, Subject<SessionEvent>>();
-  private sessionAlerts = new Map<string, Subject<AlertData>>();
-  private sessionData = new Map<string, SessionData>();
+  private sessionEvents = new Map<number, Subject<SessionEvent>>();
+  private sessionAlerts = new Map<number, Subject<AlertData>>();
+  private sessionData = new Map<number, SessionData>();
 
   // Default alert thresholds
   private readonly DEFAULT_INACTIVITY_THRESHOLD = 10 * 60 * 1000; // 10 minutes
@@ -34,7 +34,7 @@ export class AnalyticsService {
   /**
    * Initialize a session
    */
-  initSession(sessionId: string): void {
+  initSession(sessionId: number): void {
     if (!this.sessionEvents.has(sessionId)) {
       this.sessionEvents.set(sessionId, new Subject<SessionEvent>());
     }
@@ -46,21 +46,24 @@ export class AnalyticsService {
     if (!this.sessionData.has(sessionId)) {
       // Initialize default thresholds
       const alertThresholds = new Map<OptionalAlertType, AlertThreshold>();
-      alertThresholds.set(OptionalAlertType.STUDENT_INACTIVITY, { 
-        threshold: this.DEFAULT_INACTIVITY_THRESHOLD 
+      alertThresholds.set(OptionalAlertType.STUDENT_INACTIVITY, {
+        threshold: this.DEFAULT_INACTIVITY_THRESHOLD,
       });
-      alertThresholds.set(OptionalAlertType.LOW_PARTICIPATION, { 
-        threshold: this.DEFAULT_LOW_PARTICIPATION_THRESHOLD 
+      alertThresholds.set(OptionalAlertType.LOW_PARTICIPATION, {
+        threshold: this.DEFAULT_LOW_PARTICIPATION_THRESHOLD,
       });
-      alertThresholds.set(OptionalAlertType.QUESTION_FAILURE_RATE, { 
-        threshold: this.DEFAULT_QUESTION_FAILURE_THRESHOLD 
+      alertThresholds.set(OptionalAlertType.QUESTION_FAILURE_RATE, {
+        threshold: this.DEFAULT_QUESTION_FAILURE_THRESHOLD,
       });
 
       this.sessionData.set(sessionId, {
         lastActivity: new Map<string, number>(),
         alertSubscriptions: new Set<OptionalAlertType>(),
         alertThresholds,
-        questionFailures: new Map<string, { attempts: number; failures: number }>(),
+        questionFailures: new Map<
+          string,
+          { attempts: number; failures: number }
+        >(),
         lastAlertTimestamps: new Map<OptionalAlertType, number>(),
       });
     }
@@ -69,7 +72,7 @@ export class AnalyticsService {
   /**
    * Subscribe to session events
    */
-  subscribeToSession(sessionId: string): Observable<SessionEvent> {
+  subscribeToSession(sessionId: number): Observable<SessionEvent> {
     this.initSession(sessionId);
     return this.sessionEvents.get(sessionId)!.asObservable();
   }
@@ -77,7 +80,7 @@ export class AnalyticsService {
   /**
    * Subscribe to session alerts
    */
-  subscribeToSessionAlerts(sessionId: string): Observable<AlertData> {
+  subscribeToSessionAlerts(sessionId: number): Observable<AlertData> {
     this.initSession(sessionId);
     return this.sessionAlerts.get(sessionId)!.asObservable();
   }
@@ -86,17 +89,17 @@ export class AnalyticsService {
    * Subscribe to a specific alert type for a session
    */
   subscribeToAlert(
-    sessionId: string,
-    instructorId: string,
+    sessionId: number,
+    instructorId: number,
     alertType: OptionalAlertType,
     threshold?: number,
   ): void {
     this.initSession(sessionId);
     const sessionData = this.sessionData.get(sessionId)!;
-    
+
     // Add to subscriptions
     sessionData.alertSubscriptions.add(alertType);
-    
+
     // Update threshold if provided
     if (threshold !== undefined) {
       const alertThreshold = sessionData.alertThresholds.get(alertType);
@@ -110,13 +113,13 @@ export class AnalyticsService {
    * Unsubscribe from a specific alert type for a session
    */
   unsubscribeFromAlert(
-    sessionId: string,
-    instructorId: string,
+    sessionId: number,
+    instructorId: number,
     alertType: OptionalAlertType,
   ): void {
     this.initSession(sessionId);
     const sessionData = this.sessionData.get(sessionId)!;
-    
+
     // Remove from subscriptions
     sessionData.alertSubscriptions.delete(alertType);
   }
@@ -125,22 +128,19 @@ export class AnalyticsService {
    * Check if the session is subscribed to a specific alert type
    */
   hasAlertSubscription(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
   ): boolean {
     const sessionData = this.sessionData.get(sessionId);
     if (!sessionData) return false;
-    
+
     return sessionData.alertSubscriptions.has(alertType);
   }
 
   /**
    * Get the threshold for a specific alert type
    */
-  getAlertThreshold(
-    sessionId: string,
-    alertType: OptionalAlertType,
-  ): number {
+  getAlertThreshold(sessionId: number, alertType: OptionalAlertType): number {
     const sessionData = this.sessionData.get(sessionId);
     if (!sessionData) {
       // Return default threshold if session doesn't exist
@@ -155,7 +155,7 @@ export class AnalyticsService {
           return 0;
       }
     }
-    
+
     const threshold = sessionData.alertThresholds.get(alertType);
     return threshold ? threshold.threshold : 0;
   }
@@ -164,13 +164,13 @@ export class AnalyticsService {
    * Set the threshold for a specific alert type
    */
   setAlertThreshold(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
     threshold: number,
   ): void {
     this.initSession(sessionId);
     const sessionData = this.sessionData.get(sessionId)!;
-    
+
     const alertThreshold = sessionData.alertThresholds.get(alertType);
     if (alertThreshold) {
       alertThreshold.threshold = threshold;
@@ -185,7 +185,7 @@ export class AnalyticsService {
     this.initSession(sessionId);
 
     const sessionData = this.sessionData.get(sessionId)!;
-    
+
     // Update last activity timestamp for the student
     sessionData.lastActivity.set(studentId, Date.now());
 
@@ -208,7 +208,7 @@ export class AnalyticsService {
    * Track a question result for failure rate calculation
    */
   private trackQuestionResult(
-    sessionId: string,
+    sessionId: number,
     questionId: string,
     success: boolean,
   ): void {
@@ -233,7 +233,7 @@ export class AnalyticsService {
    * Emit an optional alert if there are subscribers
    */
   emitOptionalAlert(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
     message: string,
     data?: any,
@@ -276,7 +276,7 @@ export class AnalyticsService {
   /**
    * Clean up session resources
    */
-  cleanupSession(sessionId: string): void {
+  cleanupSession(sessionId: number): void {
     this.sessionEvents.delete(sessionId);
     this.sessionAlerts.delete(sessionId);
     this.sessionData.delete(sessionId);
@@ -285,14 +285,14 @@ export class AnalyticsService {
   /**
    * Get all active session IDs
    */
-  getActiveSessionIds(): string[] {
+  getActiveSessionIds(): number[] {
     return Array.from(this.sessionData.keys());
   }
 
   /**
    * Get session data for analytics processing
    */
-  getSessionDataForProcessing(sessionId: string): SessionData | undefined {
+  getSessionDataForProcessing(sessionId: number): SessionData | undefined {
     return this.sessionData.get(sessionId);
   }
 }
