@@ -15,4 +15,8 @@ export class CreateMessageInput {
     @Field(() => Int)
     @IsInt()
     senderId: number;
+
+    @Field()
+    @IsString()
+    senderEmail: string;
 }

@@ -1,247 +1,247 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz System Test</title>
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .role-selector {
-            margin-bottom: 20px;
-        }
-        .panel {
-            border: 1px solid #ccc;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        .question {
-            margin-bottom: 15px;
-            padding: 15px;
-            border: 1px solid #eee;
-            border-radius: 5px;
-        }
-        .option {
-            margin: 10px 0;
-        }
-        .option button {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            background: #f9f9f9;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .option button:hover {
-            background: #e9e9e9;
-        }
-        #eventLog {
-            height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-top: 20px;
-            background: #f5f5f5;
-        }
-        .log-entry {
-            margin: 5px 0;
-            padding: 5px;
-            border-bottom: 1px solid #eee;
-        }
-        .progress {
-            margin: 10px 0;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="role-selector">
-        <h2>Select Role:</h2>
-        <button onclick="selectRole('instructor')">Instructor</button>
-        <button onclick="selectRole('student')">Student</button>
-    </div>
-
-    <div id="instructorPanel" class="panel">
-        <h2>Instructor Panel</h2>
-        <div>
-            <label>Quiz ID:</label>
-            <input type="number" id="instructorQuizId" value="1">
-            <label>Instructor ID:</label>
-            <input type="number" id="instructorId" value="2">
-            <label>Time Limit (seconds):</label>
-            <input type="number" id="timeLimit" value="300">
-        </div>
-        <button onclick="startQuiz()">Start Quiz</button>
-        <button onclick="endQuiz()">End Quiz</button>
-    </div>
-
-    <div id="studentPanel" class="panel">
-        <h2>Student Panel</h2>
-        <div>
-            <label>Quiz ID:</label>
-            <input type="number" id="studentQuizId" value="1">
-            <label>Student ID:</label>
-            <input type="number" id="studentId" value="5">
-            <button onclick="joinQuiz()">Join Quiz</button>
-        </div>
-        <div id="quizContent" style="display: none;">
-            <h3>Quiz Progress</h3>
-            <div class="progress">Question <span id="currentQuestionNum">0</span> of <span id="totalQuestions">0</span></div>
-            <div id="questionContainer"></div>
-        </div>
-    </div>
-
-    <div id="eventLog">
-        <h3>Event Log</h3>
-        <div id="logContent"></div>
-    </div>
-
-    <script>
-        let socket;
-        let currentRole = null;
-        let currentQuestions = [];
-        let currentQuestionIndex = 0;
-
-        function connectSocket() {
-            socket = io('ws://localhost:3300/quizzes', {
-                transports: ['websocket'],
-                autoConnect: true
-            });
-
-            // Socket event listeners
-            socket.on('connect', () => {
-                logEvent('Connected to server');
-            });
-
-            socket.on('userJoined', (data) => {
-                logEvent(`User ${data.userId} joined the quiz`);
-            });
-
-            socket.on('quizStarted', (data) => {
-                logEvent('Quiz started');
-                if (currentRole === 'student') {
-                    currentQuestions = data.questions;
-                    document.getElementById('quizContent').style.display = 'block';
-                    document.getElementById('totalQuestions').textContent = currentQuestions.length;
-                    showQuestion(0);
-                }
-            });
-
-            socket.on('answerSubmitted', (data) => {
-                logEvent(`Answer submitted by user ${data.userId} - Correct: ${data.isCorrect}`);
-            });
-
-            socket.on('quizEnded', (data) => {
-                logEvent('Quiz ended');
-                if (data.results) {
-                    logEvent('Results: ' + JSON.stringify(data.results, null, 2));
-                }
-                if (currentRole === 'student') {
-                    document.getElementById('quizContent').style.display = 'none';
-                    currentQuestions = [];
-                    currentQuestionIndex = 0;
-                }
-            });
-
-            socket.on('error', (error) => {
-                logEvent('Error: ' + error.message);
-            });
-        }
-
-        function selectRole(role) {
-            currentRole = role;
-            document.getElementById('instructorPanel').style.display = role === 'instructor' ? 'block' : 'none';
-            document.getElementById('studentPanel').style.display = role === 'student' ? 'block' : 'none';
-            
-            if (!socket) {
-                connectSocket();
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quiz System Test</title>
+        <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
             }
-        }
-
-        function startQuiz() {
-            const quizId = parseInt(document.getElementById('instructorQuizId').value);
-            const instructorId = parseInt(document.getElementById('instructorId').value);
-            const timeLimit = parseInt(document.getElementById('timeLimit').value);
-
-            socket.emit('startQuiz', { quizId, instructorId, timeLimit });
-            logEvent(`Starting quiz ${quizId}`);
-        }
-
-        function endQuiz() {
-            const quizId = parseInt(document.getElementById('instructorQuizId').value);
-            const instructorId = parseInt(document.getElementById('instructorId').value);
-
-            socket.emit('endQuiz', { quizId, instructorId });
-            logEvent(`Ending quiz ${quizId}`);
-        }
-
-        function joinQuiz() {
-            const quizId = parseInt(document.getElementById('studentQuizId').value);
-            const userId = parseInt(document.getElementById('studentId').value);
-
-            socket.emit('joinQuiz', { quizId, userId });
-            logEvent(`Joining quiz ${quizId} as user ${userId}`);
-        }
-
-        function submitAnswer(questionId, optionIndex) {
-            const quizId = parseInt(document.getElementById('studentQuizId').value);
-            const userId = parseInt(document.getElementById('studentId').value);
-
-            socket.emit('submitAnswer', {
-                quizId,
-                questionId,
-                userId,
-                selectedOptionIndex: optionIndex
-            });
-            
-            logEvent(`Submitted answer for question ${questionId}`);
-            
-            // Move to next question if available
-            if (currentQuestionIndex < currentQuestions.length - 1) {
-                currentQuestionIndex++;
-                showQuestion(currentQuestionIndex);
-            } else {
-                logEvent('Completed all questions');
-                document.getElementById('questionContainer').innerHTML = '<h4>Waiting for quiz to end...</h4>';
+            .role-selector {
+                margin-bottom: 20px;
             }
-        }
+            .panel {
+                border: 1px solid #ccc;
+                padding: 20px;
+                margin-bottom: 20px;
+                display: none;
+            }
+            .question {
+                margin-bottom: 15px;
+                padding: 15px;
+                border: 1px solid #eee;
+                border-radius: 5px;
+            }
+            .option {
+                margin: 10px 0;
+            }
+            .option button {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                background: #f9f9f9;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            .option button:hover {
+                background: #e9e9e9;
+            }
+            #eventLog {
+                height: 200px;
+                overflow-y: auto;
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-top: 20px;
+                background: #f5f5f5;
+            }
+            .log-entry {
+                margin: 5px 0;
+                padding: 5px;
+                border-bottom: 1px solid #eee;
+            }
+            .progress {
+                margin: 10px 0;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="role-selector">
+            <h2>Select Role:</h2>
+            <button onclick="selectRole('instructor')">Instructor</button>
+            <button onclick="selectRole('student')">Student</button>
+        </div>
 
-        function showQuestion(index) {
-            const question = currentQuestions[index];
-            const container = document.getElementById('questionContainer');
-            document.getElementById('currentQuestionNum').textContent = index + 1;
-            
-            let html = `
-                <div class="question">
-                    <h4>Question ${index + 1}: ${question.questionText}</h4>
-                    <div class="options">
-            `;
-            
-            question.options.forEach((option, i) => {
-                html += `
-                    <div class="option">
-                        <button onclick="submitAnswer(${question.id}, ${i})">${option}</button>
-                    </div>
+        <div id="instructorPanel" class="panel">
+            <h2>Instructor Panel</h2>
+            <div>
+                <label>Quiz ID:</label>
+                <input type="number" id="instructorQuizId" value="1">
+                <label>Instructor ID:</label>
+                <input type="number" id="instructorId" value="2">
+                <label>Time Limit (seconds):</label>
+                <input type="number" id="timeLimit" value="300">
+            </div>
+            <button onclick="startQuiz()">Start Quiz</button>
+            <button onclick="endQuiz()">End Quiz</button>
+        </div>
+
+        <div id="studentPanel" class="panel">
+            <h2>Student Panel</h2>
+            <div>
+                <label>Quiz ID:</label>
+                <input type="number" id="studentQuizId" value="1">
+                <label>Student ID:</label>
+                <input type="number" id="studentId" value="5">
+                <button onclick="joinQuiz()">Join Quiz</button>
+            </div>
+            <div id="quizContent" style="display: none;">
+                <h3>Quiz Progress</h3>
+                <div class="progress">Question <span id="currentQuestionNum">0</span> of <span id="totalQuestions">0</span></div>
+                <div id="questionContainer"></div>
+            </div>
+        </div>
+
+        <div id="eventLog">
+            <h3>Event Log</h3>
+            <div id="logContent"></div>
+        </div>
+
+        <script>
+            let socket;
+            let currentRole = null;
+            let currentQuestions = [];
+            let currentQuestionIndex = 0;
+
+            function connectSocket() {
+                socket = io('ws://localhost:3300/quizzes', {
+                    transports: ['websocket'],
+                    autoConnect: true
+                });
+
+                // Socket event listeners
+                socket.on('connect', () => {
+                    logEvent('Connected to server');
+                });
+
+                socket.on('userJoined', (data) => {
+                    logEvent(`User ${data.userId} joined the quiz`);
+                });
+
+                socket.on('quizStarted', (data) => {
+                    logEvent('Quiz started');
+                    if (currentRole === 'student') {
+                        currentQuestions = data.questions;
+                        document.getElementById('quizContent').style.display = 'block';
+                        document.getElementById('totalQuestions').textContent = currentQuestions.length;
+                        showQuestion(0);
+                    }
+                });
+
+                socket.on('answerSubmitted', (data) => {
+                    logEvent(`Answer submitted by user ${data.userId} - Correct: ${data.isCorrect}`);
+                });
+
+                socket.on('quizEnded', (data) => {
+                    logEvent('Quiz ended');
+                    if (data.results) {
+                        logEvent('Results: ' + JSON.stringify(data.results, null, 2));
+                    }
+                    if (currentRole === 'student') {
+                        document.getElementById('quizContent').style.display = 'none';
+                        currentQuestions = [];
+                        currentQuestionIndex = 0;
+                    }
+                });
+
+                socket.on('error', (error) => {
+                    logEvent('Error: ' + error.message);
+                });
+            }
+
+            function selectRole(role) {
+                currentRole = role;
+                document.getElementById('instructorPanel').style.display = role === 'instructor' ? 'block' : 'none';
+                document.getElementById('studentPanel').style.display = role === 'student' ? 'block' : 'none';
+                
+                if (!socket) {
+                    connectSocket();
+                }
+            }
+
+            function startQuiz() {
+                const quizId = parseInt(document.getElementById('instructorQuizId').value);
+                const instructorId = parseInt(document.getElementById('instructorId').value);
+                const timeLimit = parseInt(document.getElementById('timeLimit').value);
+
+                socket.emit('startQuiz', { quizId, instructorId, timeLimit });
+                logEvent(`Starting quiz ${quizId}`);
+            }
+
+            function endQuiz() {
+                const quizId = parseInt(document.getElementById('instructorQuizId').value);
+                const instructorId = parseInt(document.getElementById('instructorId').value);
+
+                socket.emit('endQuiz', { quizId, instructorId });
+                logEvent(`Ending quiz ${quizId}`);
+            }
+
+            function joinQuiz() {
+                const quizId = parseInt(document.getElementById('studentQuizId').value);
+                const userId = parseInt(document.getElementById('studentId').value);
+
+                socket.emit('joinQuiz', { quizId, userId });
+                logEvent(`Joining quiz ${quizId} as user ${userId}`);
+            }
+
+            function submitAnswer(questionId, optionIndex) {
+                const quizId = parseInt(document.getElementById('studentQuizId').value);
+                const userId = parseInt(document.getElementById('studentId').value);
+
+                socket.emit('submitAnswer', {
+                    quizId,
+                    questionId,
+                    userId,
+                    selectedOptionIndex: optionIndex
+                });
+                
+                logEvent(`Submitted answer for question ${questionId}`);
+                
+                // Move to next question if available
+                if (currentQuestionIndex < currentQuestions.length - 1) {
+                    currentQuestionIndex++;
+                    showQuestion(currentQuestionIndex);
+                } else {
+                    logEvent('Completed all questions');
+                    document.getElementById('questionContainer').innerHTML = '<h4>Waiting for quiz to end...</h4>';
+                }
+            }
+
+            function showQuestion(index) {
+                const question = currentQuestions[index];
+                const container = document.getElementById('questionContainer');
+                document.getElementById('currentQuestionNum').textContent = index + 1;
+                
+                let html = `
+                    <div class="question">
+                        <h4>Question ${index + 1}: ${question.questionText}</h4>
+                        <div class="options">
                 `;
-            });
-            
-            html += `</div></div>`;
-            container.innerHTML = html;
-        }
+                
+                question.options.forEach((option, i) => {
+                    html += `
+                        <div class="option">
+                            <button onclick="submitAnswer(${question.id}, ${i})">${option}</button>
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+                container.innerHTML = html;
+            }
 
-        function logEvent(message) {
-            const logContent = document.getElementById('logContent');
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
-            logContent.insertBefore(entry, logContent.firstChild);
-        }
-    </script>
-</body>
-</html> 
+            function logEvent(message) {
+                const logContent = document.getElementById('logContent');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+                logContent.insertBefore(entry, logContent.firstChild);
+            }
+        </script>
+    </body>
+    </html> 

@@ -7,6 +7,7 @@ import { MessageModel } from '../models/message.model';
 import { UserModel } from '../../../courses/graphql/models/user.model';
 import { SessionModel } from '../../../sessions/graphql/models/session.model';
 import { SessionsService } from '../../../sessions/sessions.service';
+import { send } from 'process';
 
 @Resolver(() => MessageModel)
 export class MessageResolver {
@@ -43,6 +44,7 @@ export class MessageResolver {
             content: createMessageInput.content,
             sessionId: createMessageInput.sessionId,
             senderId: createMessageInput.senderId,
+            senderEmail: createMessageInput.senderEmail,
         };
 
         return this.messagesService.create(createData);

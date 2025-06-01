@@ -20,7 +20,9 @@ import { Injectable } from '@nestjs/common';
   },
   namespace: '/quizzes',
 })
-export class QuizzesGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class QuizzesGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -52,7 +54,7 @@ export class QuizzesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   ) {
     const quiz = await this.quizzesService.findOne(data.quizId);
     const roomId = `quiz_${data.quizId}`;
-    
+
     // Start the quiz session
     this.server.to(roomId).emit('quizStarted', {
       quizId: data.quizId,
@@ -76,7 +78,7 @@ export class QuizzesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     @ConnectedSocket() client: Socket,
   ) {
     const roomId = `quiz_${data.quizId}`;
-    
+
     // Save the answer
     const answer = await this.quizzesService.createAnswer({
       quizId: data.quizId,
@@ -96,12 +98,12 @@ export class QuizzesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       isCorrect,
     });
 
-    return { 
+    return {
       event: 'answerReceived',
-      data: { 
+      data: {
         status: 'ok',
         isCorrect,
-      }
+      },
     };
   }
 
@@ -111,7 +113,7 @@ export class QuizzesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     @ConnectedSocket() client: Socket,
   ) {
     const roomId = `quiz_${data.quizId}`;
-    
+
     // Get final results
     const quiz = await this.quizzesService.findOne(data.quizId);
     const results = await this.quizzesService.calculateQuizResults(data.quizId);

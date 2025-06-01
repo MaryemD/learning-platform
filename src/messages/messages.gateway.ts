@@ -102,7 +102,8 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
 
     // Optionally override userId for security
-    createMessageDto.senderId = user.sub;
+    createMessageDto.senderId = user.sub || user.id;
+    createMessageDto.senderEmail = createMessageDto.senderEmail || user.email;
 
     try {
       // Create the message

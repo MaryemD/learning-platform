@@ -69,4 +69,13 @@ export class CoursesService {
         if (!course) throw new NotFoundException(`Course #${courseId} not found`);
         return course.instructor;
     }
+
+    async getSessionsByCourse(courseId: number) {
+        const course = await this.coursesRepo.findOne({
+            where: { id: courseId },
+            relations: ['sessions'],
+        });
+        if (!course) throw new NotFoundException(`Course #${courseId} not found`);
+        return course.sessions;
+    }
 }

@@ -125,6 +125,7 @@ input CreateMessageInput {
   content: String!
   sessionId: Int!
   senderId: Int!
+  senderEmail: String!
 }
 
 input UpdateMessageInput {

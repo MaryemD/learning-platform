@@ -10,4 +10,7 @@ export class CreateMessageDto {
 
     @IsInt()
     senderId: number;
+
+    @IsString()
+    senderEmail: string;
 }

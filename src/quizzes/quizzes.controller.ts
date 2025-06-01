@@ -107,7 +107,6 @@ export class QuizzesController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRoleEnum.INSTRUCTOR)
   async deleteQuiz(
     @Param('id', ParseIntPipe) id: number,
     @User() user: UserEntity,

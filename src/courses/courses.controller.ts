@@ -39,4 +39,9 @@ export class CoursesController {
     remove(@Param('id', ParseIntPipe) id: number) {
         return this.service.remove(id);
     }
+
+    @Get(':id/sessions')
+    getSessionsByCourse(@Param('id', ParseIntPipe) id: number) {
+        return this.service.getSessionsByCourse(id);
+    }
 }
