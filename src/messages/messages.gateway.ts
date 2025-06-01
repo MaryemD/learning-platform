@@ -17,7 +17,7 @@ import { UserService } from 'src/users/users.service';
 
 @WebSocketGateway({
   cors: {
-    origin: true, // Allow all origins for development
+    origin: true, 
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
     credentials: true,
@@ -50,14 +50,14 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     const payload = this.jwtService.verify(token);
     console.log(payload);
     const user = await this.userService.findOneByEmail(payload.email)
-    client.data.user = user; // Store user data in socket instance
+    client.data.user = user; 
     console.log(user);
     
 
     this.logger.log(`Client connected: ${client.id}, User ID: ${payload.sub}`);
   } catch (error) {
     this.logger.warn(`Unauthorized socket connection: ${error.message}`);
-    client.disconnect(); // Force disconnect if unauthorized
+    client.disconnect(); 
   }
 }
 
@@ -75,7 +75,6 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     await client.join(room);
     this.logger.log(`User ${data.userId} joined session ${data.sessionId}`);
 
-    // Send recent messages to the newly joined user
     const recentMessages = await this.messagesService.getRecentMessages(data.sessionId, 50);
     client.emit('recentMessages', recentMessages);
   }
@@ -101,20 +100,13 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
       return client.emit('error', { message: 'Unauthorized' });
     }
 
-    // Optionally override userId for security
     createMessageDto.senderId = user.sub;
 
     try {
-      // Create the message
       const message = await this.messagesService.create(createMessageDto);
-
-      // Get the full message with relations
       const fullMessage = await this.messagesService.findOne(message.id);
-
-      // Emit to all users in the session room
       const room = `session_${createMessageDto.sessionId}`;
       this.server.to(room).emit('newMessage', fullMessage);
-
       this.logger.log(`Message sent to session ${createMessageDto.sessionId}`);
     } catch (error) {
       client.emit('error', { message: 'Failed to send message', error: error.message });
@@ -129,7 +121,6 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     try {
       await this.messagesService.markAsRead(data.messageId);
 
-      // Optionally emit read status to other users
       const message = await this.messagesService.findOne(data.messageId);
       const room = `session_${message.session.id}`;
       this.server.to(room).emit('messageRead', { messageId: data.messageId, userId: data.userId });
@@ -144,7 +135,6 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     @MessageBody() data: { sessionId: number; userId: number; isTyping: boolean }
   ) {
     const room = `session_${data.sessionId}`;
-    // Broadcast typing status to other users in the room (excluding sender)
     client.to(room).emit('userTyping', {
       userId: data.userId,
       isTyping: data.isTyping,

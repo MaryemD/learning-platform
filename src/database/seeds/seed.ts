@@ -481,256 +481,145 @@ export class DatabaseSeeder {
         console.log('📝 Seeding quizzes...');
 
         const quizRepository = this.dataSource.getRepository(Quiz);
-        const quizQuestionRepository = this.dataSource.getRepository(QuizQuestion);
+        const questionRepository = this.dataSource.getRepository(QuizQuestion);
 
-        // Create quiz for Session 1
-        const quiz1 = quizRepository.create({
-            title: 'Programming Basics Quiz',
-            session: sessions[0],
-        });
-        const savedQuiz1 = await quizRepository.save(quiz1);
-
-        const quiz1Questions = [
+        const quizzesData = [
             {
-                questionText: 'What is a variable in programming?',
-                options: ['A fixed value', 'A container for storing data', 'A type of loop', 'A function'],
-                correctAnswerIndex: 1,
-                quiz: savedQuiz1,
+                title: 'JavaScript Fundamentals Quiz',
+                session: sessions.find(s => s.course.title === 'Advanced JavaScript'),
+                questions: [
+                    {
+                        questionText: 'What is the output of: console.log(typeof null)?',
+                        options: ['null', 'undefined', 'object', 'number'],
+                        correctAnswerIndex: 2
+                    },
+                    {
+                        questionText: 'Which method is used to add elements to the end of an array?',
+                        options: ['push()', 'pop()', 'shift()', 'unshift()'],
+                        correctAnswerIndex: 0
+                    },
+                    {
+                        questionText: 'What is closure in JavaScript?',
+                        options: [
+                            'A way to close the browser window',
+                            'A function that has access to variables in its outer scope',
+                            'A method to close database connections',
+                            'A way to end a loop'
+                        ],
+                        correctAnswerIndex: 1
+                    }
+                ]
             },
             {
-                questionText: 'Which of these is a Python data type?',
-                options: ['int', 'string', 'boolean', 'All of the above'],
-                correctAnswerIndex: 3,
-                quiz: savedQuiz1,
+                title: 'Data Structures Quiz',
+                session: sessions.find(s => s.course.title === 'Data Structures and Algorithms'),
+                questions: [
+                    {
+                        questionText: 'What is the time complexity of binary search?',
+                        options: ['O(1)', 'O(n)', 'O(log n)', 'O(n²)'],
+                        correctAnswerIndex: 2
+                    },
+                    {
+                        questionText: 'Which data structure uses LIFO principle?',
+                        options: ['Queue', 'Stack', 'Tree', 'Graph'],
+                        correctAnswerIndex: 1
+                    },
+                    {
+                        questionText: 'What is the space complexity of a binary tree?',
+                        options: ['O(1)', 'O(n)', 'O(log n)', 'O(n²)'],
+                        correctAnswerIndex: 1
+                    }
+                ]
+            },
+            {
+                title: 'Database Concepts Quiz',
+                session: sessions.find(s => s.course.title === 'Database Design and Management'),
+                questions: [
+                    {
+                        questionText: 'What is normalization in databases?',
+                        options: [
+                            'Converting data to normal form',
+                            'A process of organizing data to reduce redundancy',
+                            'Making all data uppercase',
+                            'Removing all data from database'
+                        ],
+                        correctAnswerIndex: 1
+                    },
+                    {
+                        questionText: 'Which SQL command is used to modify existing data?',
+                        options: ['SELECT', 'INSERT', 'UPDATE', 'DELETE'],
+                        correctAnswerIndex: 2
+                    },
+                    {
+                        questionText: 'What is a foreign key?',
+                        options: [
+                            'A key from another country',
+                            'A field that uniquely identifies each record',
+                            'A field that links two tables',
+                            'The main key of a table'
+                        ],
+                        correctAnswerIndex: 2
+                    }
+                ]
             }
         ];
 
-        await quizQuestionRepository.save(quiz1Questions);
+        const quizzes: Quiz[] = [];
 
-        // Create quiz for Session 2
-        const quiz2 = quizRepository.create({
-            title: 'HTML & CSS Basics',
-            session: sessions[1],
-        });
-        const savedQuiz2 = await quizRepository.save(quiz2);
+        for (const quizData of quizzesData) {
+            const quiz = quizRepository.create({
+                title: quizData.title,
+                session: quizData.session
+            });
+            
+            const savedQuiz = await quizRepository.save(quiz);
 
-        const quiz2Questions = [
-            {
-                questionText: 'What does HTML stand for?',
-                options: ['Hyper Text Markup Language', 'High Tech Modern Language', 'Home Tool Markup Language', 'Hyperlink and Text Markup Language'],
-                correctAnswerIndex: 0,
-                quiz: savedQuiz2,
-            },
-            {
-                questionText: 'Which CSS property is used to change text color?',
-                options: ['font-color', 'text-color', 'color', 'foreground-color'],
-                correctAnswerIndex: 2,
-                quiz: savedQuiz2,
-            }
-        ];
+            const questions = quizData.questions.map(q => 
+                questionRepository.create({
+                    questionText: q.questionText,
+                    options: q.options,
+                    correctAnswerIndex: q.correctAnswerIndex,
+                    quiz: savedQuiz
+                })
+            );
 
-        await quizQuestionRepository.save(quiz2Questions);
+            await questionRepository.save(questions);
+            savedQuiz.questions = questions;
+            quizzes.push(savedQuiz);
+        }
 
-        // Create quiz for Session 4 (Data Structures)
-        const quiz3 = quizRepository.create({
-            title: 'Data Structures Quiz',
-            session: sessions[3],
-        });
-        const savedQuiz3 = await quizRepository.save(quiz3);
-
-        const quiz3Questions = [
-            {
-                questionText: 'What is the time complexity of accessing an element in an array by index?',
-                options: ['O(1)', 'O(n)', 'O(log n)', 'O(n²)'],
-                correctAnswerIndex: 0,
-                quiz: savedQuiz3,
-            },
-            {
-                questionText: 'Which data structure follows LIFO principle?',
-                options: ['Queue', 'Stack', 'Array', 'Linked List'],
-                correctAnswerIndex: 1,
-                quiz: savedQuiz3,
-            }
-        ];
-
-        await quizQuestionRepository.save(quiz3Questions);
-
-        // Create quiz for Session 6 (Machine Learning)
-        const quiz4 = quizRepository.create({
-            title: 'Neural Networks Basics',
-            session: sessions[5],
-        });
-        const savedQuiz4 = await quizRepository.save(quiz4);
-
-        const quiz4Questions = [
-            {
-                questionText: 'What is a neuron in the context of neural networks?',
-                options: ['A brain cell', 'A computational unit that processes inputs', 'A type of algorithm', 'A programming language'],
-                correctAnswerIndex: 1,
-                quiz: savedQuiz4,
-            },
-            {
-                questionText: 'What is the purpose of an activation function?',
-                options: ['To start the network', 'To introduce non-linearity', 'To stop training', 'To save the model'],
-                correctAnswerIndex: 1,
-                quiz: savedQuiz4,
-            }
-        ];
-
-        await quizQuestionRepository.save(quiz4Questions);
-
-        return [savedQuiz1, savedQuiz2, savedQuiz3, savedQuiz4];
+        return quizzes;
     }
 
     private async seedQuizAnswers(quizzes: Quiz[], users: UserEntity[]): Promise<QuizAnswer[]> {
-        console.log('📝 Seeding quiz answers...');
+        console.log('✍️ Seeding quiz answers...');
 
-        const quizAnswerRepository = this.dataSource.getRepository(QuizAnswer);
+        const answerRepository = this.dataSource.getRepository(QuizAnswer);
         const students = users.filter(user => user.role === UserRoleEnum.STUDENT);
+        const answers: QuizAnswer[] = [];
 
-        const quizAnswersData: any[] = [];
+        for (const quiz of quizzes) {
+            // Have some students answer each quiz
+            for (const student of students.slice(0, 5)) { // First 5 students
+                for (const question of quiz.questions) {
+                    // Simulate some correct and incorrect answers
+                    const isCorrect = Math.random() > 0.3; // 70% chance of correct answer
+                    const selectedOptionIndex = isCorrect ? 
+                        question.correctAnswerIndex : 
+                        Math.floor(Math.random() * question.options.length);
 
-        // Answers for Quiz 1 (Programming Basics)
-        const quiz1 = quizzes[0];
+                    const answer = answerRepository.create({
+                        quiz,
+                        user: student,
+                        questionId: question.id,
+                        selectedOptionIndex
+                    });
 
-        // Alice's answers (correct answers)
-        quizAnswersData.push(
-            {
-                questionId: 1, // First question
-                selectedOptionIndex: 1, // Correct answer
-                quiz: quiz1,
-                user: students[0], // Alice
-            },
-            {
-                questionId: 2, // Second question
-                selectedOptionIndex: 3, // Correct answer
-                quiz: quiz1,
-                user: students[0], // Alice
+                    answers.push(answer);
+                }
             }
-        );
+        }
 
-        // Bob's answers (mixed correct/incorrect)
-        quizAnswersData.push(
-            {
-                questionId: 1,
-                selectedOptionIndex: 0, // Incorrect answer
-                quiz: quiz1,
-                user: students[1], // Bob
-            },
-            {
-                questionId: 2,
-                selectedOptionIndex: 3, // Correct answer
-                quiz: quiz1,
-                user: students[1], // Bob
-            }
-        );
-
-        // Answers for Quiz 2 (HTML & CSS)
-        const quiz2 = quizzes[1];
-
-        // Eva's answers
-        quizAnswersData.push(
-            {
-                questionId: 3, // First HTML question
-                selectedOptionIndex: 0, // Correct answer
-                quiz: quiz2,
-                user: students[4], // Eva
-            },
-            {
-                questionId: 4, // CSS question
-                selectedOptionIndex: 2, // Correct answer
-                quiz: quiz2,
-                user: students[4], // Eva
-            }
-        );
-
-        // Frank's answers
-        quizAnswersData.push(
-            {
-                questionId: 3,
-                selectedOptionIndex: 1, // Incorrect answer
-                quiz: quiz2,
-                user: students[5], // Frank
-            },
-            {
-                questionId: 4,
-                selectedOptionIndex: 1, // Incorrect answer
-                quiz: quiz2,
-                user: students[5], // Frank
-            }
-        );
-
-        // Answers for Quiz 3 (Data Structures)
-        const quiz3 = quizzes[2];
-
-        // Charlie's answers
-        quizAnswersData.push(
-            {
-                questionId: 5, // Array access question
-                selectedOptionIndex: 0, // Correct answer
-                quiz: quiz3,
-                user: students[2], // Charlie
-            },
-            {
-                questionId: 6, // LIFO question
-                selectedOptionIndex: 1, // Correct answer
-                quiz: quiz3,
-                user: students[2], // Charlie
-            }
-        );
-
-        // Diana's answers
-        quizAnswersData.push(
-            {
-                questionId: 5,
-                selectedOptionIndex: 1, // Incorrect answer
-                quiz: quiz3,
-                user: students[3], // Diana
-            },
-            {
-                questionId: 6,
-                selectedOptionIndex: 0, // Incorrect answer
-                quiz: quiz3,
-                user: students[3], // Diana
-            }
-        );
-
-        // Answers for Quiz 4 (Neural Networks)
-        const quiz4 = quizzes[3];
-
-        // Grace's answers
-        quizAnswersData.push(
-            {
-                questionId: 7, // Neuron question
-                selectedOptionIndex: 1, // Correct answer
-                quiz: quiz4,
-                user: students[6], // Grace
-            },
-            {
-                questionId: 8, // Activation function question
-                selectedOptionIndex: 1, // Correct answer
-                quiz: quiz4,
-                user: students[6], // Grace
-            }
-        );
-
-        // Henry's answers
-        quizAnswersData.push(
-            {
-                questionId: 7,
-                selectedOptionIndex: 0, // Incorrect answer
-                quiz: quiz4,
-                user: students[7], // Henry
-            },
-            {
-                questionId: 8,
-                selectedOptionIndex: 0, // Incorrect answer
-                quiz: quiz4,
-                user: students[7], // Henry
-            }
-        );
-
-        const quizAnswers = quizAnswerRepository.create(quizAnswersData);
-        return await quizAnswerRepository.save(quizAnswers);
+        return await answerRepository.save(answers);
     }
 }
