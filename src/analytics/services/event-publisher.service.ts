@@ -3,16 +3,10 @@ import { AnalyticsService } from './analytics.service';
 import { SessionEvent } from '../dto/session-event.dto';
 import { EventType, OptionalAlertType } from '../enums';
 
-/**
- * Service for publishing standardized analytics events
- */
 @Injectable()
 export class EventPublisherService {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  /**
-   * Notifies when a student joins a session
-   */
   notifyStudentJoined(
     sessionId: string,
     studentId: string,
@@ -29,9 +23,6 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Notifies when a student participates in a quiz
-   */
   notifyQuizParticipation(
     sessionId: string,
     studentId: string,
@@ -50,9 +41,6 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Notifies when a new question is asked
-   */
   notifyNewQuestion(
     sessionId: string,
     questionId: string,
@@ -71,9 +59,6 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Track a question result (success or failure)
-   */
   trackQuestionResult(
     sessionId: string,
     questionId: string,
@@ -92,9 +77,6 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Emit an optional alert
-   */
   emitOptionalAlert(
     sessionId: string,
     alertType: OptionalAlertType,

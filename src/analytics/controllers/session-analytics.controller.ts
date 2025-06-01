@@ -1,16 +1,14 @@
-import { Controller, Query, Sse } from '@nestjs/common';
+import { Controller, Query, Sse, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
-// To be added later after auth is implemented
-// import { AuthGuard } from '../../auth/guards/auth.guard';
-// import { RolesGuard } from '../../roles/roles.guard';
-// import { Roles } from '../../roles/roles.decorator';
+import { Roles } from 'src/roles/roles.decorator';
+import { UserRoleEnum } from 'src/enums/user-role.enum';
+import { JwtAuthGuard } from 'src/users/guards/jwt-auth.guard';
 
 @Controller('analytics')
-// @UseGuards(AuthGuard, RolesGuard)
-// @Roles('Instructor')
+@Roles(UserRoleEnum.INSTRUCTOR)
+@UseGuards(JwtAuthGuard)
 export class SessionAnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
