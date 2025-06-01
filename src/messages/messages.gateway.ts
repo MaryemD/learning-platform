@@ -49,7 +49,7 @@ export class MessagesGateway
       const payload = this.jwtService.verify(token);
       console.log(payload);
       const user = await this.userService.findOneByEmail(payload.email);
-      client.data.user = user; // Store user data in socket instance
+      client.data.user = user;
       console.log(user);
 
       this.logger.log(
@@ -57,7 +57,7 @@ export class MessagesGateway
       );
     } catch (error) {
       this.logger.warn(`Unauthorized socket connection: ${error.message}`);
-      client.disconnect(); // Force disconnect if unauthorized
+      client.disconnect();
     }
   }
 
@@ -79,7 +79,6 @@ export class MessagesGateway
       client.data.user.name,
     );
 
-    // Send recent messages to the newly joined user
     const recentMessages = await this.messagesService.getRecentMessages(
       data.sessionId,
       50,
