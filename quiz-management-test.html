@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Management Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #response {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .question-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .option-group {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quiz Management Test</h1>
+    
+    <div class="container">
+        <div class="left-panel">
+            <h2>Authentication</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="instructor@example.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" value="password123">
+            </div>
+            <button onclick="login()">Login</button>
+            
+            <h2>Create Quiz</h2>
+            <div class="form-group">
+                <label for="title">Quiz Title:</label>
+                <input type="text" id="title" value="JavaScript Basics">
+            </div>
+            <div class="form-group">
+                <label for="sessionId">Session ID:</label>
+                <input type="number" id="sessionId" value="1">
+            </div>
+            <div id="questions">
+                <h3>Questions</h3>
+                <div class="question-container">
+                    <div class="form-group">
+                        <label>Question Text:</label>
+                        <input type="text" class="question-text" value="What is JavaScript?">
+                    </div>
+                    <div class="option-group">
+                        <div class="form-group">
+                            <label>Option 1:</label>
+                            <input type="text" class="option" value="A programming language">
+                        </div>
+                        <div class="form-group">
+                            <label>Option 2:</label>
+                            <input type="text" class="option" value="A markup language">
+                        </div>
+                        <div class="form-group">
+                            <label>Option 3:</label>
+                            <input type="text" class="option" value="A styling language">
+                        </div>
+                        <div class="form-group">
+                            <label>Option 4:</label>
+                            <input type="text" class="option" value="A database">
+                        </div>
+                        <div class="form-group">
+                            <label>Correct Answer Index (0-3):</label>
+                            <input type="number" class="correct-answer" min="0" max="3" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button onclick="addQuestion()">Add Another Question</button>
+            <button onclick="createQuiz()">Create Quiz</button>
+            
+            <h2>Quiz Operations</h2>
+            <div class="form-group">
+                <label for="quizId">Quiz ID:</label>
+                <input type="number" id="quizId" value="1">
+            </div>
+            <button onclick="getQuiz()">Get Quiz</button>
+            <button onclick="getQuizzes()">Get My Quizzes</button>
+            <button onclick="deleteQuiz()">Delete Quiz</button>
+
+            <h2>Search All Quizzes</h2>
+            <div class="form-group">
+                <label for="searchQuery">Search Title:</label>
+                <input type="text" id="searchQuery" placeholder="Search by title...">
+            </div>
+            <div class="form-group">
+                <label for="filterSessionId">Filter by Session ID:</label>
+                <input type="number" id="filterSessionId" placeholder="Session ID">
+            </div>
+            <div class="form-group">
+                <label for="page">Page:</label>
+                <input type="number" id="page" value="1" min="1">
+            </div>
+            <div class="form-group">
+                <label for="limit">Items per page:</label>
+                <input type="number" id="limit" value="10" min="1">
+            </div>
+            <button onclick="getAllQuizzes()">Search Quizzes</button>
+        </div>
+        
+        <div class="right-panel">
+            <h2>Response</h2>
+            <div id="response"></div>
+        </div>
+    </div>
+
+    <script>
+        let token = '';
+        const API_URL = 'http://localhost:3300';
+
+        async function login() {
+            try {
+                const response = await fetch(`${API_URL}/user/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await response.json();
+                if (data.access_token) {
+                    token = data.access_token;
+                    document.getElementById('response').textContent = 'Login successful! Token received.';
+                } else {
+                    document.getElementById('response').textContent = 'Login failed: ' + JSON.stringify(data);
+                }
+            } catch (error) {
+                document.getElementById('response').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        function addQuestion() {
+            const questionsDiv = document.getElementById('questions');
+            const newQuestion = document.querySelector('.question-container').cloneNode(true);
+            
+            // Clear the values
+            newQuestion.querySelectorAll('input').forEach(input => input.value = '');
+            questionsDiv.appendChild(newQuestion);
+        }
+
+        async function createQuiz() {
+            const questions = [];
+            document.querySelectorAll('.question-container').forEach(container => {
+                questions.push({
+                    questionText: container.querySelector('.question-text').value,
+                    options: Array.from(container.querySelectorAll('.option')).map(opt => opt.value),
+                    correctAnswerIndex: parseInt(container.querySelector('.correct-answer').value)
+                });
+            });
+
+            const quizData = {
+                title: document.getElementById('title').value,
+                sessionId: parseInt(document.getElementById('sessionId').value),
+                questions: questions
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/quizzes/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(quizData)
+                });
+                const data = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('response').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function getQuiz() {
+            const quizId = document.getElementById('quizId').value;
+            try {
+                const response = await fetch(`${API_URL}/quizzes/${quizId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('response').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function getQuizzes() {
+            try {
+                const response = await fetch(`${API_URL}/quizzes`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('response').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function deleteQuiz() {
+            const quizId = document.getElementById('quizId').value;
+            try {
+                const response = await fetch(`${API_URL}/quizzes/${quizId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('response').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function getAllQuizzes() {
+            try {
+                const searchQuery = document.getElementById('searchQuery').value;
+                const sessionId = document.getElementById('filterSessionId').value;
+                const page = document.getElementById('page').value;
+                const limit = document.getElementById('limit').value;
+
+                let url = `${API_URL}/quizzes/all?page=${page}&limit=${limit}`;
+                if (searchQuery) {
+                    url += `&search=${encodeURIComponent(searchQuery)}`;
+                }
+                if (sessionId) {
+                    url += `&sessionId=${sessionId}`;
+                }
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('response').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -48,7 +48,8 @@ export class UserService {
         if (hashedPassword !== user.password) {
             throw new NotFoundException('Invalid password');
         } else {
-            const payload = { username: user.name, email: user.email, role: user.role };
+            // FIX: Add sub: user.id to JWT payload
+            const payload = { sub: user.id, username: user.name, email: user.email, role: user.role };
             const jwt = await this.jwtService.signAsync(payload);
             return {
                 "access_token": jwt,
@@ -57,5 +58,19 @@ export class UserService {
     }
     InstructorOrAdmin(user) {
         return (user.role === UserRoleEnum.ADMIN || user.role === UserRoleEnum.INSTRUCTOR);
+    }
+    findOneById(id: number){
+        return this.userRepository.findOneBy({
+            id:id
+        })
+    }
+
+    findAll(){
+        return this.userRepository.find();
+    }
+    findOneByEmail(email: string){
+        return this.userRepository.findOneBy({
+            email: email,
+        })
     }
 }

@@ -4,7 +4,7 @@ import { OptionalAlertType } from '../enums';
  * DTO for subscribing to optional alerts
  */
 export class AlertSubscriptionDto {
-  sessionId: string;
+  sessionId: number;
   instructorId: string;
   alertType: OptionalAlertType;
   threshold?: number;
@@ -14,7 +14,7 @@ export class AlertSubscriptionDto {
  * DTO for setting alert thresholds
  */
 export class AlertThresholdDto {
-  sessionId: string;
+  sessionId: number;
   alertType: OptionalAlertType;
   threshold: number;
 }
@@ -23,7 +23,7 @@ export class AlertThresholdDto {
  * DTO for alert data
  */
 export interface AlertData {
-  sessionId: string;
+  sessionId: number;
   timestamp: number;
   alertType: OptionalAlertType;
   message: string;

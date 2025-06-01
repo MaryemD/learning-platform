@@ -6,6 +6,7 @@ import {
   Param,
   Sse,
   Query,
+
   UseGuards,
 } from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
@@ -17,14 +18,14 @@ import { Roles } from 'src/roles/roles.decorator';
 import { JwtAuthGuard } from 'src/users/guards/jwt-auth.guard';
 
 interface AlertSubscriptionRequest {
-  sessionId: string;
-  instructorId: string;
+  sessionId: number;
+  instructorId: number;
   alertType: OptionalAlertType;
   threshold?: number;
 }
 
 interface AlertThresholdRequest {
-  sessionId: string;
+  sessionId: number;
   alertType: OptionalAlertType;
   threshold: number;
 }
@@ -58,8 +59,9 @@ export class OptionalAlertsController {
    */
   @Delete('unsubscribe/:sessionId/:instructorId/:alertType')
   unsubscribeFromAlert(
-    @Param('sessionId') sessionId: string,
-    @Param('instructorId') instructorId: string,
+    @Param('sessionId') sessionId: number,
+    @Param('instructorId') instructorId: number,
+
     @Param('alertType') alertType: OptionalAlertType,
   ) {
     this.analyticsService.unsubscribeFromAlert(
@@ -96,7 +98,8 @@ export class OptionalAlertsController {
    */
   @Sse('stream')
   streamAlerts(
-    @Query('sessionId') sessionId: string,
+    @Query('sessionId') sessionId: number,
+
   ): Observable<MessageEvent> {
     return this.analyticsService.subscribeToSessionAlerts(sessionId).pipe(
       map(

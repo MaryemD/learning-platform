@@ -21,14 +21,15 @@ interface SessionData {
  */
 @Injectable()
 export class AnalyticsService {
-  private sessionEvents = new Map<string, Subject<SessionEvent>>();
-  private sessionAlerts = new Map<string, Subject<AlertData>>();
-  private sessionData = new Map<string, SessionData>();
+  private sessionEvents = new Map<number, Subject<SessionEvent>>();
+  private sessionAlerts = new Map<number, Subject<AlertData>>();
+  private sessionData = new Map<number, SessionData>();
 
   private readonly DEFAULT_INACTIVITY_THRESHOLD = 10 * 60 * 1000; // 10 minutes
   private readonly DEFAULT_LOW_PARTICIPATION_THRESHOLD = 30; // 30% participation
   private readonly DEFAULT_QUESTION_FAILURE_THRESHOLD = 70; // 70% failure rate
   private readonly ALERT_COOLDOWN = 5 * 60 * 1000; // 5 minutes between same alert type
+
 
   initSession(sessionId: string): void {
     if (!this.sessionEvents.has(sessionId)) {
@@ -64,10 +65,12 @@ export class AnalyticsService {
     }
   }
 
+
   subscribeToSession(sessionId: string): Observable<SessionEvent> {
     this.initSession(sessionId);
     return this.sessionEvents.get(sessionId)!.asObservable();
   }
+
 
   subscribeToSessionAlerts(sessionId: string): Observable<AlertData> {
     this.initSession(sessionId);
@@ -78,8 +81,8 @@ export class AnalyticsService {
    * Subscribe to a specific alert type for a session
    */
   subscribeToAlert(
-    sessionId: string,
-    instructorId: string,
+    sessionId: number,
+    instructorId: number,
     alertType: OptionalAlertType,
     threshold?: number,
   ): void {
@@ -100,18 +103,19 @@ export class AnalyticsService {
    * Unsubscribe from a specific alert type for a session
    */
   unsubscribeFromAlert(
-    sessionId: string,
-    instructorId: string,
+    sessionId: number,
+    instructorId: number,
     alertType: OptionalAlertType,
   ): void {
     this.initSession(sessionId);
     const sessionData = this.sessionData.get(sessionId)!;
 
+
     sessionData.alertSubscriptions.delete(alertType);
   }
 
   hasAlertSubscription(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
   ): boolean {
     const sessionData = this.sessionData.get(sessionId);
@@ -119,6 +123,7 @@ export class AnalyticsService {
 
     return sessionData.alertSubscriptions.has(alertType);
   }
+
 
   getAlertThreshold(sessionId: string, alertType: OptionalAlertType): number {
     const sessionData = this.sessionData.get(sessionId);
@@ -140,7 +145,7 @@ export class AnalyticsService {
   }
 
   setAlertThreshold(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
     threshold: number,
   ): void {
@@ -159,6 +164,7 @@ export class AnalyticsService {
 
     const sessionData = this.sessionData.get(sessionId)!;
 
+
     sessionData.lastActivity.set(studentId, Date.now());
 
     if (
@@ -176,7 +182,7 @@ export class AnalyticsService {
   }
 
   private trackQuestionResult(
-    sessionId: string,
+    sessionId: number,
     questionId: string,
     success: boolean,
   ): void {
@@ -198,7 +204,7 @@ export class AnalyticsService {
   }
 
   emitOptionalAlert(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
     message: string,
     data?: any,
@@ -233,17 +239,20 @@ export class AnalyticsService {
     }
   }
 
+
   cleanupSession(sessionId: string): void {
     this.sessionEvents.delete(sessionId);
     this.sessionAlerts.delete(sessionId);
     this.sessionData.delete(sessionId);
   }
 
+
   getActiveSessionIds(): string[] {
     return Array.from(this.sessionData.keys());
   }
 
   getSessionDataForProcessing(sessionId: string): SessionData | undefined {
+>>>>>>> main
     return this.sessionData.get(sessionId);
   }
 }

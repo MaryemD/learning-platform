@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { UserModel } from '../../../courses/graphql/models/user.model';
 import { CourseModel } from '../../../courses/graphql/models/course.model';
-import { QuestionModel } from '../../../questions/graphql/models/question.model';
+import { MessageModel } from '../../../messages/graphql/models/message.model';
 import { QuizModel } from '../../../quizzes/graphql/models/quiz.model';
 
 @ObjectType()
@@ -24,8 +24,8 @@ export class SessionModel {
     @Field(() => CourseModel)
     course: CourseModel;
 
-    @Field(() => [QuestionModel], { nullable: 'itemsAndList' })
-    questions: QuestionModel[];
+    @Field(() => [MessageModel], { nullable: 'itemsAndList' })
+    messages: MessageModel[];
 
     @Field(() => [QuizModel], { nullable: 'itemsAndList' })
     quizzes: QuizModel[];

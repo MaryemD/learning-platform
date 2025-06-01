@@ -1,13 +1,13 @@
 import { IsString, IsBoolean, IsInt, IsOptional } from 'class-validator';
 
-export class UpdateQuestionDto {
+export class UpdateMessageDto {
     @IsString()
     @IsOptional()
     content?: string;
 
     @IsBoolean()
     @IsOptional()
-    answered?: boolean;
+    isRead?: boolean;
 
     @IsInt()
     @IsOptional()
@@ -15,5 +15,5 @@ export class UpdateQuestionDto {
 
     @IsInt()
     @IsOptional()
-    userId?: number;
+    senderId?: number;
 }

@@ -41,6 +41,7 @@ export class AnalyticsProcessorService
     }
   }
 
+
   private processSession(sessionId: string): void {
     const sessionData =
       this.analyticsService.getSessionDataForProcessing(sessionId);
@@ -51,6 +52,7 @@ export class AnalyticsProcessorService
     this.checkQuestionFailureRates(sessionId, sessionData);
   }
 
+
   private checkStudentInactivity(sessionId: string, sessionData: any): void {
     const now = Date.now();
     let inactiveCount = 0;
@@ -59,14 +61,12 @@ export class AnalyticsProcessorService
       OptionalAlertType.STUDENT_INACTIVITY,
     );
 
-    // Count inactive students
     for (const [studentId, lastActive] of sessionData.lastActivity.entries()) {
       if (now - lastActive > inactivityThreshold) {
         inactiveCount++;
       }
     }
 
-    // Only emit alert if there are inactive students
     if (inactiveCount > 0) {
       this.analyticsService.emitOptionalAlert(
         sessionId,
@@ -76,6 +76,7 @@ export class AnalyticsProcessorService
       );
     }
   }
+
 
   private checkLowParticipation(sessionId: string, sessionData: any): void {
     const totalStudents = sessionData.lastActivity.size;
@@ -112,6 +113,7 @@ export class AnalyticsProcessorService
       );
     }
   }
+
 
   private checkQuestionFailureRates(sessionId: string, sessionData: any): void {
     const questionFailureThreshold = this.analyticsService.getAlertThreshold(
