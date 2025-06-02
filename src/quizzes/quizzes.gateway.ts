@@ -106,11 +106,11 @@ export class QuizzesGateway
       questionId: data.questionId,
       isCorrect,
     });
-    this.eventPublisherService.NotifyWithQuizQuestionResult(
+    this.eventPublisherService.trackQuestionResult(
       (await this.quizzesService.getSession(data.quizId)).id,
-      data.quizId,
       data.questionId,
       data.userId,
+      data.quizId,
       isCorrect,
     );
 

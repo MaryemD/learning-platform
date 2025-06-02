@@ -15,7 +15,7 @@ export interface SessionEvent {
  */
 export interface StudentJoinedEvent extends SessionEvent {
   type: EventType.StudentJoined;
-  studentId: string;
+  studentId: number;
   studentName: string;
 }
 
@@ -24,8 +24,8 @@ export interface StudentJoinedEvent extends SessionEvent {
  */
 export interface QuizParticipationEvent extends SessionEvent {
   type: EventType.QuizParticipation;
-  studentId: string;
-  quizId?: string;
+  studentId: number;
+  quizId?: number;
   completed?: boolean;
 }
 
@@ -34,7 +34,7 @@ export interface QuizParticipationEvent extends SessionEvent {
  */
 export interface QuizQuestionResultEvent extends SessionEvent {
   type: EventType.QuestionResult;
-  questionId: string;
-  studentId: string;
+  questionId: number;
+  studentId: number;
   success: boolean;
 }

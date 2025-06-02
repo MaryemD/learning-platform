@@ -41,8 +41,7 @@ export class AnalyticsProcessorService
     }
   }
 
-
-  private processSession(sessionId: string): void {
+  private processSession(sessionId: number): void {
     const sessionData =
       this.analyticsService.getSessionDataForProcessing(sessionId);
     if (!sessionData) return;
@@ -52,8 +51,7 @@ export class AnalyticsProcessorService
     this.checkQuestionFailureRates(sessionId, sessionData);
   }
 
-
-  private checkStudentInactivity(sessionId: string, sessionData: any): void {
+  private checkStudentInactivity(sessionId: number, sessionData: any): void {
     const now = Date.now();
     let inactiveCount = 0;
     const inactivityThreshold = this.analyticsService.getAlertThreshold(
@@ -77,8 +75,7 @@ export class AnalyticsProcessorService
     }
   }
 
-
-  private checkLowParticipation(sessionId: string, sessionData: any): void {
+  private checkLowParticipation(sessionId: number, sessionData: any): void {
     const totalStudents = sessionData.lastActivity.size;
     if (totalStudents === 0) return;
 
@@ -114,8 +111,7 @@ export class AnalyticsProcessorService
     }
   }
 
-
-  private checkQuestionFailureRates(sessionId: string, sessionData: any): void {
+  private checkQuestionFailureRates(sessionId: number, sessionData: any): void {
     const questionFailureThreshold = this.analyticsService.getAlertThreshold(
       sessionId,
       OptionalAlertType.QUESTION_FAILURE_RATE,

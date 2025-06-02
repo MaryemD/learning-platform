@@ -5,7 +5,7 @@ import { OptionalAlertType } from '../enums';
  */
 export class AlertSubscriptionDto {
   sessionId: number;
-  instructorId: string;
+  instructorId: number;
   alertType: OptionalAlertType;
   threshold?: number;
 }

@@ -39,39 +39,21 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-
-  notifyNewQuestion(
-    sessionId: string,
-    questionId: string,
-    question: string,
-    studentId: string,
-  ): void {
-    const event: SessionEvent = {
-      type: EventType.NewQuestion,
-      timestamp: Date.now(),
-      sessionId,
-      questionId,
-      question,
-      studentId,
-    };
-
-    this.analyticsService.emitSessionEvent(event);
-  }
-
   trackQuestionResult(
-    sessionId: string,
-    questionId: string,
-    studentId: string,
+    sessionId: number,
+    questionId: number,
+    studentId: number,
+    quizId: number,
     success: boolean,
   ): void {
     const event: SessionEvent = {
       type: EventType.QuestionResult,
       timestamp: Date.now(),
       sessionId,
-      quizId,
+      questionId,
       studentId,
       success,
-      questionId,
+      quizId,
     };
 
     this.analyticsService.emitSessionEvent(event);
