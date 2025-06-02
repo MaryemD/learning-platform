@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { QuizAnswer } from "src/quizzes/entities/quiz-answer.entity";
 import { Repository } from "typeorm";
@@ -6,7 +6,6 @@ import { UserEntity } from "src/users/entities/user.entity"
 import { sessionStatsStore } from "./session-stats.store";
 import { QuizQuestion } from "src/quizzes/entities/quiz-question.entity";
 import { Quiz } from "src/quizzes/entities/quiz.entity";
-import { StatsGateway } from "./stats.gateway";
 
 @Injectable()
 export class StatsService {
@@ -18,8 +17,12 @@ constructor(
     private readonly quizRepo: Repository<Quiz>,
 ) {}
 
+// Obtenir les statistiques d'une session
 async getStats(sessionId: number) {
+
+    // Récupérer les nombre de users connectés à la session via le store
     const connected = sessionStatsStore.get(sessionId)?.connectedUsers?.size || 0;
+
     const totalUsers = await this.userRepo.count(); 
     const totalQuestions = await this.questionRepo
     .createQueryBuilder('question')
@@ -34,6 +37,7 @@ async getStats(sessionId: number) {
     .where('session.id = :sessionId', { sessionId })
     .getCount();
 
+    // Calcule du taux de participation (en %)
     const participationRate = totalUsers ? (totalAnswers / totalUsers) * 100 : 0;
 
     return {
@@ -42,6 +46,7 @@ async getStats(sessionId: number) {
     participationRate: Math.round(participationRate * 10) / 10,
     };
 }
+
 async getSessionFromQuiz(quizId: number) {
     const quiz = await this.quizRepo.findOne({
     where: { id: quizId },

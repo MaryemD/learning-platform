@@ -14,15 +14,19 @@ async sendStats(
     @Res() res: Response,
     @Req() req: Request,
     ) {
+
+    // Configurer les headers pour le SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
+    // Mettre à jour les statistiques toutes les 3 secondes
     const intervalId = setInterval(async () => {
     const stats = await this.statsService.getStats(sessionId);
     res.write(`data: ${JSON.stringify(stats)}\n\n`);
     }, 3000); 
 
+    // Nettoyer l'intervalle lors de la fermeture de la connexion
     const client = req as unknown as IncomingMessage;
     client.on('close', () => {
     clearInterval(intervalId);

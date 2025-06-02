@@ -13,21 +13,20 @@ import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 @WebSocketGateway({
-    cors: { origin: '*' },
-    namespace: '/stats',
+    cors: { origin: '*' }, // Permet de recevoir des connexions depuis n'importe quelle origine
+    namespace: '/stats', 
 })
 export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer()
     server: Server;
 
+    // Logger pour les messages de connexion et de déconnexion
     private readonly logger = new Logger(StatsGateway.name);
 
     // Pour stocker les intervalles associés à chaque client
     private intervals: Map<string, NodeJS.Timeout> = new Map();
 
-    constructor(private readonly statsService: StatsService) {
-        console.log('StatsService injected:', statsService);
-    }
+    constructor(private readonly statsService: StatsService) {}
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected: ${client.id}`);
@@ -42,6 +41,7 @@ export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    // Gestion de la souscription aux statistiques
     @SubscribeMessage('subscribeToStats')
     async handleStatsSubscription(
         @MessageBody() data: { quizId: number },
@@ -57,18 +57,20 @@ export class StatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         const sessionId = session.id;
 
-        // Send initial stats
+        // Récupérer les statistiques initiales
         const initialStats = await this.statsService.getStats(sessionId);
         client.emit('statsUpdate', initialStats);
 
-        // Set up periodic updates
+        // Mettre à jour les statistiques toutes les 3 secondes
         const interval = setInterval(async () => {
             const stats = await this.statsService.getStats(sessionId);
             client.emit('statsUpdate', stats);
         }, 3000);
 
+        // Stocker l'intervalle pour le client pour pouvoir le nettoyer lors de la déconnexion
         this.intervals.set(client.id, interval);
 
+        // Retourner un message de succès
         return { event: 'subscribedToStats', data: { quizId } };
     }
 }
