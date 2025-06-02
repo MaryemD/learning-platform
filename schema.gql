@@ -57,6 +57,12 @@ type CourseModel {
   sessions: [SessionModel]
 }
 
+type StatsDto {
+  connected: Int!
+  totalQuestions: Int!
+  participationRate: Float!
+}
+
 type Query {
   courses: [CourseModel!]!
   course(id: Int!): CourseModel!
@@ -70,6 +76,7 @@ type Query {
   unreadMessagesCount(sessionId: Int!, userId: Int!): Int!
   quizzes: [QuizModel!]!
   quiz(id: Int!): QuizModel!
+  getSessionStats(sessionId: Int!): StatsDto!
 }
 
 type Mutation {

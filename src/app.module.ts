@@ -20,12 +20,11 @@ import { Quiz } from './quizzes/entities/quiz.entity';
 import { QuizQuestion } from './quizzes/entities/quiz-question.entity';
 import { QuizAnswer } from './quizzes/entities/quiz-answer.entity';
 import {ConfigModule} from "@nestjs/config";
-
 declare const process: any;
-
 import * as dotenv from 'dotenv';
 import {GraphQLModule} from "@nestjs/graphql";
 import {ApolloDriver, ApolloDriverConfig} from "@nestjs/apollo";
+import { StatsModule } from './stats/stats.module';
 dotenv.config();
 
 
@@ -63,7 +62,8 @@ dotenv.config();
     MessagesModule,
     QuizzesModule,
     AnalyticsModule,
-    PermissionsModule
+    PermissionsModule,
+    StatsModule
   ],
   controllers: [AppController],
   providers: [AppService],
