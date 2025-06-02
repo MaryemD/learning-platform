@@ -8,7 +8,7 @@ export class AnalyticsProcessorService
 {
   private processingInterval: NodeJS.Timeout | null = null;
 
-  private readonly PROCESSING_INTERVAL = 15 * 60 * 1000; // 15 minutes
+  private readonly PROCESSING_INTERVAL = 5 * 1000; // 5 seconds - change it in production
 
   constructor(private readonly analyticsService: AnalyticsService) {}
 

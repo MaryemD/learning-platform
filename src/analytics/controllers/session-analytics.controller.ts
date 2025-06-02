@@ -1,7 +1,12 @@
-import { Controller, Query, Sse, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Query,
+  Sse,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { Roles } from 'src/roles/roles.decorator';
 import { UserRoleEnum } from 'src/enums/user-role.enum';
 import { JwtAuthGuard } from 'src/users/guards/jwt-auth.guard';
@@ -17,15 +22,25 @@ export class SessionAnalyticsController {
    */
   @Sse('events')
   streamEvents(
-    @Query('sessionId') sessionId: number,
+    @Query('sessionId', ParseIntPipe) sessionId: number,
   ): Observable<MessageEvent> {
-    return this.analyticsService.subscribeToSession(sessionId).pipe(
-      map(
-        (event) =>
-          ({
-            data: event,
-          }) as MessageEvent,
-      ),
-    );
+    return new Observable<MessageEvent>((observer) => {
+      const subscription = this.analyticsService
+        .subscribeToSession(sessionId)
+        .subscribe({
+          next: (event) => {
+            observer.next({
+              data: JSON.stringify(event),
+            } as MessageEvent);
+          },
+          error: (error) => {
+            observer.error(error);
+          },
+        });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    });
   }
 }

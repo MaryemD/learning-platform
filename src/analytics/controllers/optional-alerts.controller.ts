@@ -6,13 +6,12 @@ import {
   Param,
   Sse,
   Query,
-
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
 import { OptionalAlertType } from '../enums';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { UserRoleEnum } from 'src/enums/user-role.enum';
 import { Roles } from 'src/roles/roles.decorator';
 import { JwtAuthGuard } from 'src/users/guards/jwt-auth.guard';
@@ -98,16 +97,27 @@ export class OptionalAlertsController {
    */
   @Sse('stream')
   streamAlerts(
-    @Query('sessionId') sessionId: number,
-
+    @Query('sessionId', ParseIntPipe) sessionId: number,
   ): Observable<MessageEvent> {
-    return this.analyticsService.subscribeToSessionAlerts(sessionId).pipe(
-      map(
-        (alert) =>
-          ({
-            data: alert,
-          }) as MessageEvent,
-      ),
-    );
+    return new Observable<MessageEvent>((observer) => {
+      const subscription = this.analyticsService
+        .subscribeToSessionAlerts(sessionId)
+        .subscribe({
+          next: (alert) => {
+            observer.next({
+              data: JSON.stringify(alert),
+            } as MessageEvent);
+          },
+          error: (error) => {
+            observer.error(error);
+          },
+        });
+
+      return () => {
+        if ((observer as any).subscription) {
+          (observer as any).subscription.unsubscribe();
+        }
+      };
+    });
   }
 }

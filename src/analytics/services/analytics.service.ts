@@ -158,7 +158,6 @@ export class AnalyticsService {
     this.initSession(sessionId);
 
     const sessionData = this.sessionData.get(sessionId)!;
-
     sessionData.lastActivity.set(studentId, Date.now());
 
     if (
