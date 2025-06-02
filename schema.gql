@@ -60,6 +60,12 @@ type CourseModel {
   sessions: [SessionModel]
 }
 
+type StatsDto {
+  connected: Int!
+  totalQuestions: Int!
+  participationRate: Float!
+}
+
 type Query {
   courses: [CourseModel!]!
   course(id: Int!): CourseModel!
@@ -67,6 +73,7 @@ type Query {
   session(id: Int!): SessionModel!
   quizzes: [QuizModel!]!
   quiz(id: Int!): QuizModel!
+  getSessionStats(sessionId: Int!): StatsDto!
 }
 
 type Mutation {

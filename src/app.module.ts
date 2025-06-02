@@ -22,12 +22,11 @@ import { QuizQuestion } from './quizzes/entities/quiz-question.entity';
 import { QuizAnswer } from './quizzes/entities/quiz-answer.entity';
 import {RealtimecGateway} from "./realtimec/realtimec.gateway";
 import {ConfigModule} from "@nestjs/config";
-
 declare const process: any;
-
 import * as dotenv from 'dotenv';
 import {GraphQLModule} from "@nestjs/graphql";
 import {ApolloDriver, ApolloDriverConfig} from "@nestjs/apollo";
+import { StatsModule } from './stats/stats.module';
 dotenv.config();
 
 
@@ -60,7 +59,8 @@ dotenv.config();
     QuizzesModule,
     RealtimeModule,
     AnalyticsModule,
-    PermissionsModule
+    PermissionsModule,
+    StatsModule
   ],
   controllers: [AppController],
   providers: [AppService, RealtimecGateway],

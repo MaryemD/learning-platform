@@ -1,0 +1,1 @@
+export const sessionStatsStore = new Map<number, { connectedUsers: Set<number> }>();
