@@ -41,6 +41,7 @@ export class SessionsService {
     return this.sessionsRepo.find();
   }
 
+    
   async findOne(id: number): Promise<Session> {
     const session = await this.sessionsRepo.findOne({
       where: { id },

@@ -19,6 +19,7 @@ async function bootstrap() {
       'Apollo-Require-Preflight',
     ],
     credentials: true,
+
   });
 
   app.useGlobalPipes(new ValidationPipe());

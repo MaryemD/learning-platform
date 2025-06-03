@@ -6,7 +6,7 @@ import { EventType } from '../enums';
 export interface SessionEvent {
   type: EventType;
   timestamp: number;
-  sessionId: string;
+  sessionId: number;
   [key: string]: any;
 }
 
@@ -30,19 +30,9 @@ export interface QuizParticipationEvent extends SessionEvent {
 }
 
 /**
- * Event for when a new question is asked
+ * Event for when a quiz is answered (success or failure)
  */
-export interface NewQuestionEvent extends SessionEvent {
-  type: EventType.NewQuestion;
-  questionId: string;
-  question: string;
-  studentId: string;
-}
-
-/**
- * Event for when a question is answered (success or failure)
- */
-export interface QuestionResultEvent extends SessionEvent {
+export interface QuizQuestionResultEvent extends SessionEvent {
   type: EventType.QuestionResult;
   questionId: string;
   studentId: string;

@@ -12,6 +12,7 @@ import { QuizzesService } from './quizzes.service';
 import { StartQuizDto } from './dto/start-quiz.dto';
 import { SubmitAnswerDto } from './dto/submit-answer.dto';
 import { Injectable } from '@nestjs/common';
+import { EventPublisherService } from 'src/analytics/services/event-publisher.service';
 
 @Injectable()
 @WebSocketGateway({
@@ -26,7 +27,10 @@ export class QuizzesGateway
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly quizzesService: QuizzesService) {}
+  constructor(
+    private readonly quizzesService: QuizzesService,
+    private readonly eventPublisherService: EventPublisherService,
+  ) {}
 
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
@@ -44,6 +48,11 @@ export class QuizzesGateway
     const roomId = `quiz_${data.quizId}`;
     await client.join(roomId);
     this.server.to(roomId).emit('userJoined', { userId: data.userId });
+    this.eventPublisherService.notifyQuizParticipation(
+      (await this.quizzesService.getSession(data.quizId)).id,
+      data.userId,
+      data.quizId,
+    );
     return { event: 'joinedQuiz', data: { quizId: data.quizId } };
   }
 
@@ -97,6 +106,13 @@ export class QuizzesGateway
       questionId: data.questionId,
       isCorrect,
     });
+    this.eventPublisherService.NotifyWithQuizQuestionResult(
+      (await this.quizzesService.getSession(data.quizId)).id,
+      data.quizId,
+      data.questionId,
+      data.userId,
+      isCorrect,
+    );
 
     return {
       event: 'answerReceived',

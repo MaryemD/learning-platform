@@ -9,6 +9,7 @@ import { Session } from '../sessions/entities/session.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { QuizzesGateway } from './quizzes.gateway';
 import { QuizzesController } from './quizzes.controller';
+import { AnalyticsModule } from 'src/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -17,15 +18,12 @@ import { QuizzesController } from './quizzes.controller';
       QuizQuestion,
       QuizAnswer,
       Session,
-      UserEntity
-    ])
+      UserEntity,
+    ]),
+    AnalyticsModule,
   ],
-  providers: [
-    QuizzesService, 
-    QuizResolver,
-    QuizzesGateway
-  ],
+  providers: [QuizzesService, QuizResolver, QuizzesGateway],
   controllers: [QuizzesController],
-  exports: [QuizzesService]
+  exports: [QuizzesService],
 })
 export class QuizzesModule {}

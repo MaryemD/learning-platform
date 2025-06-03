@@ -3,19 +3,13 @@ import { AnalyticsService } from './analytics.service';
 import { SessionEvent } from '../dto/session-event.dto';
 import { EventType, OptionalAlertType } from '../enums';
 
-/**
- * Service for publishing standardized analytics events
- */
 @Injectable()
 export class EventPublisherService {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  /**
-   * Notifies when a student joins a session
-   */
   notifyStudentJoined(
-    sessionId: string,
-    studentId: string,
+    sessionId: number,
+    studentId: number,
     studentName: string,
   ): void {
     const event: SessionEvent = {
@@ -29,14 +23,10 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Notifies when a student participates in a quiz
-   */
   notifyQuizParticipation(
-    sessionId: string,
-    studentId: string,
-    completed: boolean = false,
-    quizId?: string,
+    sessionId: number,
+    studentId: number,
+    quizId?: number,
   ): void {
     const event: SessionEvent = {
       type: EventType.QuizParticipation,
@@ -44,15 +34,12 @@ export class EventPublisherService {
       sessionId,
       studentId,
       quizId,
-      completed,
     };
 
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Notifies when a new question is asked
-   */
+
   notifyNewQuestion(
     sessionId: string,
     questionId: string,
@@ -71,9 +58,6 @@ export class EventPublisherService {
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Track a question result (success or failure)
-   */
   trackQuestionResult(
     sessionId: string,
     questionId: string,
@@ -84,19 +68,17 @@ export class EventPublisherService {
       type: EventType.QuestionResult,
       timestamp: Date.now(),
       sessionId,
-      questionId,
+      quizId,
       studentId,
       success,
+      questionId,
     };
 
     this.analyticsService.emitSessionEvent(event);
   }
 
-  /**
-   * Emit an optional alert
-   */
   emitOptionalAlert(
-    sessionId: string,
+    sessionId: number,
     alertType: OptionalAlertType,
     message: string,
     data?: any,

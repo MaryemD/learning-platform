@@ -67,7 +67,6 @@ export class MessagesService {
             message.sender = sender;
         }
 
-        // Filter out sessionId and senderId since they are not columns
         const { sessionId, senderId, ...restDto } = updateDto;
         Object.assign(message, restDto);
 

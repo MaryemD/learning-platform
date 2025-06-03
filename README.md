@@ -45,7 +45,6 @@ Replace `your_password` with your actual MySQL password and `your-super-secret-j
 1. Make sure your MySQL server is running.
 2. Create a local database with the name learning-platform-db, as specified in the .env file content.
 
-
 ## Analytics Features
 
 ### Real-Time Event Streaming
@@ -54,7 +53,6 @@ Replace `your_password` with your actual MySQL password and `your-super-secret-j
 - **Tracked Events**:
   - `student_joined`: Student enters session
   - `quiz_participation`: Student attempts quiz
-  - `new_question`: New question asked
   - `question_result`: Question answered (success/failure)
 
 ### Alert System (Periodic Checks)
@@ -71,4 +69,3 @@ Replace `your_password` with your actual MySQL password and `your-super-secret-j
   - ✋ **No default thresholds** - Must be configured to receive alerts
   - ⏱️ **Periodic checks** - Conditions verified every 15 minutes
   - ⚙️ **Fully configurable** - Each alert type requires explicit setup
-

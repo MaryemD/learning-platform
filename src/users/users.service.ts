@@ -48,7 +48,8 @@ export class UserService {
         if (hashedPassword !== user.password) {
             throw new NotFoundException('Invalid password');
         } else {
-            const payload = { username: user.name, email: user.email, role: user.role };
+            // FIX: Add sub: user.id to JWT payload
+            const payload = { sub: user.id, username: user.name, email: user.email, role: user.role };
             const jwt = await this.jwtService.signAsync(payload);
             return {
                 "access_token": jwt,
